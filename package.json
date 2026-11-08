@@ -46,18 +46,19 @@
   },
   "homepage": "https://github.com/spatialillusions/milsymbol",
   "devDependencies": {
+    "@rollup/plugin-replace": "^6.0.3",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "flag-icons": "7.6.0",
     "mil-std-2525": "^0.2.8",
     "milstandard-e": "^0.2.14",
+    "milsymbol-upstream": "npm:milsymbol@3.0.5",
     "prettier": "^3.8.1",
     "rollup": "^4.59.0",
     "stanag-app6": "^0.2.0",
     "tead": "^0.7.1",
-    "uglify-js": "^3.19.3",
-    "@rollup/plugin-replace": "^6.0.3"
+    "uglify-js": "^3.19.3"
   },
   "babel": {
     "presets": "env"
