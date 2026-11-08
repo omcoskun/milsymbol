@@ -21,6 +21,8 @@ note records what is removed, where it came from and how to get it back.
   guards in shared code that run only when `metadata.app6a` is true.
 - The shared hooks APP-6A uses: `metadata.validation` in `isValid`, the text
   layout branch in `textfields.js`, `setStandard("APP6A")`.
+- APP-6A's `G-C-OXAH--` ASW rotary wing, in an `if (this.metadata.app6a)` block
+  after upstream's mapping (upstream maps it to a part that does not exist).
 - Sea Surface frame shape `A` (`cdb6f9d`, approved 2026-11-05).
 - The fork version fallback in `src/ms.js`.
 

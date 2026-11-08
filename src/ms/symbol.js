@@ -34,9 +34,7 @@ function Symbol() {
   this.options.commonIdentifier = ""; // FieldID AF
   this.options.auxiliaryEquipmentIndicator = ""; // FieldID AG
   this.options.headquartersElement = ""; // FieldID AH
-  this.options.installationComposition = ""; // FieldID AI (AX in edition E)
-  this.options.installationCapacity = ""; // FieldID AT (APP-6(E))
-  this.options.networkIdentifier = ""; // FieldID AY (APP-6(E))
+  this.options.installationComposition = ""; // FieldID AI
   // FieldID AM Distance
   // FieldID AN Azimuth
   this.options.engagementBar = ""; // FieldID AO EngagementBar

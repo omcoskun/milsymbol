@@ -75,6 +75,22 @@ export default function setOptions() {
   }
 
   let anchor = { x: 100, y: 100 };
+  this.octagonAnchor = {
+    x:
+      ((anchor.x -
+        this.bbox.x1 +
+        parseFloat(this.style.strokeWidth) +
+        parseFloat(this.style.outlineWidth)) *
+        this.style.size) /
+      100,
+    y:
+      ((anchor.y -
+        this.bbox.y1 +
+        parseFloat(this.style.strokeWidth) +
+        parseFloat(this.style.outlineWidth)) *
+        this.style.size) /
+      100,
+  };
   //If it is a headquarters the anchor should be at the end of the staf
   if (this.metadata.headquarters) {
     const hqStaffLength = this.style.hqStaffLength || ms._hqStaffLength;
@@ -93,23 +109,6 @@ export default function setOptions() {
     this.bbox.x2 = anchor.x + max;
     this.bbox.y2 = anchor.y + max;
   }
-
-  this.octagonAnchor = {
-    x:
-      ((100 -
-        this.bbox.x1 +
-        parseFloat(this.style.strokeWidth) +
-        parseFloat(this.style.outlineWidth)) *
-        this.style.size) /
-      100,
-    y:
-      ((100 -
-        this.bbox.y1 +
-        parseFloat(this.style.strokeWidth) +
-        parseFloat(this.style.outlineWidth)) *
-        this.style.size) /
-      100
-  };
 
   this.baseWidth =
     this.bbox.width() +

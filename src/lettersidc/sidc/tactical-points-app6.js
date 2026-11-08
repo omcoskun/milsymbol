@@ -275,8 +275,13 @@ export default {
     bbox["G-C-OXAK--"] = { x1: 60, x2: 140, y1: 40, y2: 160 };
     sidc["G-C-OXAF--"] = icn["TP.ASW FIXED WING"]; //2.X.2.5.1.10.5
     bbox["G-C-OXAF--"] = { x1: 60, x2: 140, y1: 40, y2: 160 };
-    sidc["G-C-OXAH--"] = icn["TP.ASW ROTARY WING"]; //2.X.2.5.1.10.6
-    bbox["G-C-OXAH--"] = { x1: 60, x2: 140, y1: 35, y2: 165 };
+    sidc["G-C-OXAH--"] = icn["TP.ROTARY WING"]; //2.X.2.5.1.10.6
+    bbox["G-C-OXAH--"] = { x1: 60, x2: 140, y1: 40, y2: 160 };
+    // APP-6A: there is no TP.ROTARY WING part; draw the ASW rotary wing.
+    if (this.metadata.app6a) {
+      sidc["G-C-OXAH--"] = icn["TP.ASW ROTARY WING"];
+      bbox["G-C-OXAH--"] = { x1: 60, x2: 140, y1: 35, y2: 165 };
+    }
     sidc["G-C-OXAO--"] = icn["TP.TOMCAT"]; //2.X.2.5.1.10.7
     bbox["G-C-OXAO--"] = { x1: 60, x2: 140, y1: 40, y2: 160 };
     sidc["G-C-OXAR--"] = icn["TP.RESCUE"]; //2.X.2.5.1.10.8

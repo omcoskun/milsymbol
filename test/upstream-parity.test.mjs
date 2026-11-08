@@ -2,7 +2,9 @@
 // the milsymbol release it is based on (docs/upstream-parity-removals.md).
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import path from "node:path";
 import test from "node:test";
+import { pathToFileURL } from "node:url";
 import { ms2525b, ms2525c, ms2525d } from "mil-std-2525";
 import { app6b, app6d } from "stanag-app6";
 import { ms2525e } from "milstandard-e";
@@ -176,6 +178,65 @@ for (const [edition, standard, cases] of editions) {
     );
   });
 }
+
+// Canvas output is a sequence of context calls; record them through a Proxy.
+function recorder() {
+  const calls = [];
+  const state = { globalAlpha: 1 };
+  const ctx = new Proxy(state, {
+    get(target, key) {
+      if (key in target) return target[key];
+      return (...args) => calls.push([key, ...args]);
+    },
+    set(target, key, value) {
+      calls.push(["=", key, value]);
+      target[key] = value;
+      return true;
+    }
+  });
+  return { ctx, calls };
+}
+
+test("canvas draw calls match upstream", async () => {
+  globalThis.Path2D ||= class Path2D {
+    constructor(d) {
+      this.d = d;
+    }
+  };
+  const upstreamDir = path.dirname(
+    require.resolve("milsymbol-upstream/package.json")
+  );
+  const upstreamDraw = (
+    await import(
+      pathToFileURL(upstreamDir + "/src/ms/symbol/canvasdraw.js").href
+    )
+  ).default;
+  const forkDraw = (await import("../src/ms/symbol/canvasdraw.js")).default;
+  const draw = (ms, canvasDraw, standard, sidc) => {
+    ms.setStandard(standard);
+    const symbol = new ms.Symbol(sidc, { fillOpacity: 0.5 });
+    const { ctx, calls } = recorder();
+    canvasDraw.call(symbol, ctx, symbol.drawInstructions);
+    return JSON.stringify(calls);
+  };
+  const found = [];
+  for (const [edition, standard, cases] of editions) {
+    const first = cases()
+      .filter(([label]) => label === "identity F" || label === "identity 03")
+      .slice(0, 50)
+      .map(([, sidc]) => sidc);
+    const extra = standard === "2525" && edition !== "2525B"
+      ? ["SFGPES---------", "10031000001701000000", "10031500001301000000", "10031500002202000000"]
+      : [];
+    for (const sidc of [...first, ...extra])
+      if (
+        draw(upstream, upstreamDraw, standard, sidc) !==
+        draw(fork, forkDraw, standard, sidc)
+      )
+        found.push(`${edition} ${sidc}`);
+  }
+  assert.deepEqual(found.slice(0, 20), [], `${found.length} symbols draw differently`);
+});
 
 test("upstream alias matches the fork base", () => {
   const base = require("milsymbol-upstream/package.json").version;

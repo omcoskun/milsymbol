@@ -129,18 +129,24 @@ ms._getIconParts = function iconparts(
 ms._scale = function (factor, instruction, non_scaling_stroke) {
   function recurse_scale(instruction, factor) {
     if (Array.isArray(instruction)) {
-      return instruction.map((d) => recurse_scale(d, factor));
+      instruction.forEach((d) => {
+        d.non_scaling_stroke = 1 / factor;
+        if (d.hasOwnProperty("draw")) {
+          recurse_scale(d.draw, factor);
+        }
+        if (Array.isArray(d)) {
+          d.forEach((e) => {
+            recurse_scale(e, factor);
+          });
+        }
+      });
+    } else {
+      instruction.non_scaling_stroke = 1 / factor;
     }
-    if (!instruction || typeof instruction !== "object") return instruction;
-    const scaled = { ...instruction, non_scaling_stroke: 1 / factor };
-    if (instruction.hasOwnProperty("draw")) {
-      scaled.draw = recurse_scale(instruction.draw, factor);
-    }
-    return scaled;
   }
 
   if (non_scaling_stroke) {
-    instruction = recurse_scale(instruction, factor);
+    recurse_scale(instruction, factor);
   }
 
   return {
