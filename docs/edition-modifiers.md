@@ -4,7 +4,7 @@ These four editions have modifier profiles, as MIL-STD-2525C and APP-6(D) do. A 
 
 Since 2026-11-08 the library draws these editions exactly as upstream milsymbol 3.0.5, for example with `/` between fields in one cell, and does not apply the profiles. The Studio uses them to check a symbol: `studio/edition-check.js` adds the profile's verdict to `isValid()`. Only APP-6A has a profile in the library. `docs/upstream-parity-removals.md` lists what left the library and how to restore it from the tag `archive/before-upstream-parity`.
 
-Code: `studio/profiles/app6b.js`, `std2525d.js`, `std2525e.js`, `app6e.js`, with the shared builder `fieldtable.js`. Tests: `test/edition-modifiers.test.js` checks each class's fields, rules and `textLayout` rows against the rows copied from each figure.
+Code: `studio/profiles/app6b.js`, `std2525d.js`, `std2525e.js`, `app6e.js`, with the shared builder `fieldtable.js`. Tests: `test/edition-modifiers.test.js` checks each class's fields, codes and text rules. The rows below are kept as reference; no test compares them with a drawing any more.
 
 Citations are "PDF physical page / printed page".
 
@@ -117,7 +117,7 @@ country rule used by the MIL profiles.
 
 `details.modifierErrors` is for a wrong SIDC and for a field the symbol does not take. Those make the Studio check false, and the Studio shows Check code / modifiers. For these editions `isValid()` alone does not see them.
 
-`details.fieldWarnings` lists text values that break a length, list or format rule, as `{ key, message }`. The text is still drawn and the symbol stays valid, and the Studio shows the message under the field. All seven editions work this way. A rule that ties text to the code stays an error: APP-6D F above division, 2525C W O/O without status A.
+`details.fieldWarnings` lists text values that break a length, list or format rule, as `{ key, message }`. The text is drawn where milsymbol draws that field and the symbol stays valid, and the Studio shows the message under the field. All seven editions work this way. A rule that ties text to the code stays an error: APP-6D F above division, 2525C W O/O without status A.
 
 ## Decisions where the sources disagree
 

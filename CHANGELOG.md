@@ -30,6 +30,18 @@ publication workflow and GitHub/npm version inventory.
 - Studio: position numbers and publication notes sit behind an information button beside each heading. The reason a control is off stays on the page, next to the control.
 - Studio: Code details starts closed.
 - Studio: the theme colors are written once with `light-dark()`, which needs Chrome 123, Firefox 120 or Safari 17.5. The information buttons already need Firefox 125.
+- Library: every edition except APP-6A draws exactly as upstream milsymbol 3.0.5 again. Fields in one cell are joined with `/`, and text rows, condition bars, Joker/Faker frames and `isValid()` follow upstream. `docs/upstream-parity-removals.md` lists each change, its commit and how to restore it; the tag `archive/before-upstream-parity` keeps the earlier state.
+- Library: outside APP-6A, `isValid(true)` no longer carries the edition profiles' `modifierErrors`, `fieldWarnings` or `notes`.
+- Studio: the APP-6(B), MIL-STD-2525C, APP-6(D), MIL-STD-2525D/E and APP-6(E) profiles moved to `studio/profiles/`. The Rendered badge combines `isValid()` with the profile's check, and a numeric version other than 10–16 is not valid there.
+- Studio: an edition D code is drawn from its first 20 digits, versions 15 and 16 are drawn as 13 and 14, and edition E contexts 3–8 are drawn in their reality, exercise or simulation frame. The SIDC box keeps the full code.
+- Studio: Field positions boxes sit where milsymbol draws each field. A filled field that milsymbol does not draw for the symbol says so under it, and in APP-6(E) the identity note says that milsymbol does not draw the restricted target and no-strike marks.
+
+### Removed
+
+- Library: `ms.setStandard("2525C")` and the style `standard: "2525C"`. Use `"2525"`; the Studio checks 2525C rules itself.
+- Library: the options `installationCapacity` (AT) and `networkIdentifier` (AY), and the restricted target and no-strike marks of edition E contexts 3–8.
+- Library: the named ESM exports of `index.js` (`import { Symbol } from "milsymbol"`). Use the default export. `index.d.ts` still declares them, as upstream's does.
+- Library: the fork's fixes to `ms._scale`, the Canvas `globalAlpha` reset, the octagon anchor on headquarters symbols, Joker/Faker in exercise contexts 5 and 6, unknown versions and edition D tails. They are listed as upstream candidates.
 
 ### Fixed
 

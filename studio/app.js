@@ -12,7 +12,7 @@ import {
   app6dEngagementError
 } from "./profiles/app6d.js";
 import * as app6dSectors from "./profiles/app6d-sectors.js";
-import { editionCheck } from "./edition-check.js";
+import { drawingSidc, editionCheck, frameContext, undrawnMark } from "./edition-check.js";
 import { completeEditorSidc, copiedSidc, decodeEditorSidc, displayEditorSidc, editImportedSidc, numericSidcEdition, standardForSidc } from "./sidc-editor.js";
 import { modifierGroups, textModifiers, collectTextModifiers } from "./modifier-fields.js";
 import {
@@ -37,7 +37,7 @@ import {
   editorGaps
 } from "./profile-controls.js";
 
-import { exportFilename, pngOutputSize, pngScale, fieldStates, profileFieldStates, dtgForField, evaluationRating, sidcParts, pushRecent, placeholderOptions, readTextRows, fieldValueChars, fitRowWidths, layoutFieldBoxes, paletteProgress, baseBranch, entryCrumbs, groupEntries, paletteSections, matchesSearch, normalize, mobilities, mobilityModeName, amplifierChoice, amplifierPlacementNote, sharedViewBox, withViewBox, modifierColorUnused, modifierChoice, centeredGlyphs, frameShapeChoice, problemReasons, gridChoice, designationNotes, amplifierNotes, countryFlagNote } from "./editor-helpers.js";
+import { exportFilename, pngOutputSize, pngScale, fieldStates, profileFieldStates, dtgForField, evaluationRating, sidcParts, pushRecent, placeholderOptions, undrawnFieldKeys, readTextRows, fieldValueChars, fitRowWidths, layoutFieldBoxes, paletteProgress, baseBranch, entryCrumbs, groupEntries, paletteSections, matchesSearch, normalize, mobilities, mobilityModeName, amplifierChoice, amplifierPlacementNote, sharedViewBox, withViewBox, modifierColorUnused, modifierChoice, centeredGlyphs, frameShapeChoice, problemReasons, gridChoice, designationNotes, amplifierNotes, countryFlagNote } from "./editor-helpers.js";
 import { createGlyphPicker } from "./glyph-picker.js";
 import { createDraftAutosave, createDraftStore, draftStateKeys, sameDraft } from "./draft-store.js";
 import { setupInfoPopovers } from "./info-popover.js";
@@ -81,7 +81,7 @@ const standards = [
     // Table A-1 PDF 747/713: 13 is MIL-STD-2525E, 16 is APP-06(E)(2).
     version: "16",
     coverage: "Compatibility view",
-    coverageNote: "APP-6E has no catalog of its own here: the symbols come from the shared 2525E catalog. Field positions and rules follow APP-06 Edition E Version 2."
+    coverageNote: "APP-6E has no catalog of its own here: the symbols come from the shared 2525E catalog. The field rules follow APP-06 Edition E Version 2; the fields sit where milsymbol draws them."
   },
   {
     id: "2525c",
@@ -381,6 +381,9 @@ const state = {
 let catalog;
 let flagArtwork = new Map();
 let currentSymbol;
+// Every preview, chip and layout probe draws drawingSidc(sidc), so edition D
+// tails and versions 15-16 draw as their edition (edition-check.js).
+const drawSymbol = (sidc, options) => new window.ms.Symbol(drawingSidc(sidc), options);
 // The symbol's isValid() plus the edition profile's verdict (edition-check.js).
 let currentCheck = null;
 let currentSvg = "";
@@ -833,7 +836,7 @@ function filteredIcons() {
 
 function safeMiniSvg(icon) {
   try {
-    return new window.ms.Symbol(buildSidc(icon, true), { ...currentOptions(true), size: 40 }).asSVG();
+    return drawSymbol(buildSidc(icon, true), { ...currentOptions(true), size: 40 }).asSVG();
   } catch {
     return "<span>—</span>";
   }
@@ -1342,13 +1345,17 @@ function showNote(element, text) {
 // Explain every rule that disables a control, next to the control.
 function syncRuleNotes({ modern, app6a, kind, installation, tactical, prescribed, flagReasons = {} }) {
   const profile = activeProfile();
+  const editionE = ["2525e", "app6e"].includes(state.standardId);
   const contextNote = {
     1: `Exercise: an X is drawn beside the frame; suspect and hostile become Joker (J) and Faker (K).${modern ? "" : " Position 2 uses the exercise letters G, W, M, D, L, J and K."}`,
     2: "Simulation: an S is drawn beside the frame."
-  }[app6a ? "0" : state.context];
+  }[app6a ? "0" : editionE ? frameContext(state.context) : state.context];
+  // Edition E contexts 3-8 are drawn in their frame context. APP-6(E) gives
+  // them a mark (Figures 1-6, 1-7) that milsymbol does not draw; 2525E has none.
+  const mark = state.standardId === "app6e" && undrawnMark(state.context);
   // APP-6D and APP-6E Table A-2 keep Exercise and Simulation for US use.
   const usOnly = !app6a && isUsOnlyContext(config(), state.context) && contextOptions(config()).find(([digit]) => digit === state.context)[1];
-  showNote(dom.identityNote, [contextNote, usOnly && `${usOnly} is for US use only.`].filter(Boolean).join(" "));
+  showNote(dom.identityNote, [contextNote, mark && `milsymbol does not draw the ${mark} mark.`, usOnly && `${usOnly} is for US use only.`].filter(Boolean).join(" "));
   showNote(dom.identityReason, prescribed ? "This symbol prescribes its identity, so the identity is fixed." : "");
   for (const [key, element] of [["identity", dom.identityAdjust], ["status", dom.statusAdjust], ["amplifier", dom.amplifierAdjust]])
     showNote(element, state.adjustments[key] || "");
@@ -1663,6 +1670,19 @@ function applyFieldChoices(field, input, profileChoices, alternates) {
   input.setAttribute("list", id);
 }
 
+// Text fields milsymbol draws no text for on this symbol, from a probe
+// rendering with every field set to its "[code]" marker.
+function undrawnTextFields(sidc, states) {
+  const tags = placeholderOptions(states, {});
+  try {
+    const probe = drawSymbol(sidc, { ...currentOptions(true), ...tags.options, infoFields: true }).asSVG();
+    const texts = [...new DOMParser().parseFromString(probe, "image/svg+xml").querySelectorAll("text")].map((node) => node.textContent);
+    return undrawnFieldKeys(states, texts);
+  } catch {
+    return [];
+  }
+}
+
 // What the List and the help line say about a field: its rule, format,
 // example and source notes, for the symbol in the editor.
 const fieldHelp = new Map();
@@ -1677,6 +1697,7 @@ function syncApp6aTextFields() {
   fieldNote.textContent = profileNotes[state.standardId] || "";
   const container = document.getElementById("app6aTextFields");
   const states = new Map(currentFieldStates(sidc).map((item) => [item.key, item]));
+  const undrawn = new Set(undrawnTextFields(sidc, [...states.values()]));
   const extras = profile ? profileExtraFields(profile, sidc, textModifiers.map((field) => field.key)) : [];
   const values = Object.fromEntries(textModifiers.map(({ key, id }) => [key, document.getElementById(id).value]));
   // Text that breaks the edition's format warns under its field; the symbol is
@@ -1744,6 +1765,7 @@ function syncApp6aTextFields() {
       else if (rule.problem) lines.push(`${definition.field} ${rule.problem}.`);
       if (definition.unresolved && !definition.nonBlocking && input.value) lines.push("Unresolved in the source: the symbol is reported as not valid while this field is filled.");
       if (carried.has(field.key)) lines.push(carried.get(field.key).message);
+      if (filled && undrawn.has(field.key)) lines.push("milsymbol does not draw this field for this symbol: the value is kept, but it is not in the preview or exports.");
     }
     warning.hidden = !lines.length;
     warning.innerHTML = lines.map(escapeHtml).join("<br>");
@@ -2022,7 +2044,7 @@ function chipSvg(sidc, { size = 18, icon = true, modifierColor = "", hqStaffLeng
   if (!chipCache.has(key)) {
     let svg = "";
     try {
-      svg = new window.ms.Symbol(sidc, { ...currentOptions(true), size, icon, infoFields: false, modifierColor, hqStaffLength }).asSVG();
+      svg = drawSymbol(sidc, { ...currentOptions(true), size, icon, infoFields: false, modifierColor, hqStaffLength }).asSVG();
     } catch {}
     if (chipCache.size > 400) chipCache.clear();
     chipCache.set(key, svg);
@@ -2273,14 +2295,25 @@ function renderFieldLayout() {
   }
   const positionsButton = dom.textViewSwitch.querySelector('[data-text-view="positions"]');
   positionsButton.disabled = !layoutFits;
-  positionsButton.title = layoutFits ? "Boxes around the symbol, in the order the standard places the fields" : "Field positions need a wider window; the list is shown";
+  positionsButton.title = layoutFits ? "Boxes around the symbol, where milsymbol draws each field" : "Field positions need a wider window; the list is shown";
+}
+
+// Why the listed fields have no box: milsymbol draws no text for them on this
+// symbol, and Q and AJ are graphics.
+function layoutUndrawnNote(items) {
+  const graphics = items.some((item) => graphicAmplifiers.includes(item));
+  const texts = items.some((item) => !graphicAmplifiers.includes(item));
+  return [
+    texts && "milsymbol draws no text for these fields on this symbol, so a value is kept but not drawn.",
+    graphics && "Q and AJ are drawn as graphics."
+  ].filter(Boolean).join(" ");
 }
 
 // Lays out the boxes; false when they do not fit the room.
 function buildFieldLayout(sidc, states, options, room) {
   const tags = placeholderOptions(states, {});
-  const probe = new window.ms.Symbol(sidc, { ...options, ...tags.options, infoFields: true }).asSVG();
-  const plain = new window.ms.Symbol(sidc, { ...options, infoFields: false }).asSVG();
+  const probe = drawSymbol(sidc, { ...options, ...tags.options, infoFields: true }).asSVG();
+  const plain = drawSymbol(sidc, { ...options, infoFields: false }).asSVG();
   const texts = [...new DOMParser().parseFromString(probe, "image/svg+xml").querySelectorAll("text")].map((node) => ({
     x: Number(node.getAttribute("x")),
     y: Number(node.getAttribute("y")),
@@ -2380,7 +2413,7 @@ function buildFieldLayout(sidc, states, options, room) {
   dom.layoutMoreSummary.textContent = `Not drawn here · ${layoutUndrawn.length}`;
   dom.layoutMoreList.innerHTML = `${layoutUndrawn
     .map((item) => `<span class="layout-chip"><span class="field-code">${escapeHtml(item.field)}</span>${escapeHtml(item.label)}</span>`)
-    .join("")}<span>These have no box here. <button type="button" class="link-button" data-text-view="list">Edit them in the list</button></span>`;
+    .join("")}<span>${layoutUndrawnNote(layoutUndrawn)} <button type="button" class="link-button" data-text-view="list">Set them in the list</button></span>`;
   return true;
 }
 
@@ -2505,7 +2538,7 @@ function syncLayoutHelp() {
   const box = hoveredBox?.isConnected ? hoveredBox : focused && dom.layoutCanvas.contains(focused) ? focused : null;
   if (!box) {
     dom.layoutHelp.innerHTML = dom.layoutCanvas.querySelector("[data-layout-key]")
-      ? '<span class="layout-help-title">Click a box and type.</span><span class="layout-help-text">Boxes follow the standard\'s field layout, spaced apart for typing; the preview shows the exact placement. Empty fields are left out.</span>'
+      ? '<span class="layout-help-title">Click a box and type.</span><span class="layout-help-text">Boxes sit where milsymbol draws each field, spaced apart for typing; the preview shows the exact placement. Empty fields are left out.</span>'
       : '<span class="layout-help-title">No text amplifier is drawn around this symbol.</span>';
     return;
   }
@@ -2599,7 +2632,7 @@ function renderAll() {
   window.ms.setStandard(config().standard);
   try {
     const options = currentOptions();
-    currentSymbol = new window.ms.Symbol(sidc, options);
+    currentSymbol = drawSymbol(sidc, options);
     currentCheck = editionCheck(currentSymbol, activeProfile(), sidc, options);
     currentSvg = currentSymbol.asSVG();
     dom.symbolPreview.innerHTML = currentSvg;

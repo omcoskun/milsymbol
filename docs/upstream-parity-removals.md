@@ -57,20 +57,23 @@ a pull request rather than keeping it in the fork.
 | `octagonAnchor` computed after the HQ staff grows the bbox | Octagon anchor off on HQ symbols | `4cb165a` |
 | Joker/Faker resolved from context, so exercise contexts 5/6 count | Wrong identity on those contexts | `4cb165a` |
 | Versions other than 10–16 invalid | Unknown versions render as valid | `4cb165a` |
-| Versions 14–16 are edition E; positions 21–22 are modifiers only in edition E | Edition D national tails read as modifiers | `ffe69a3`, `598a84d` |
+| Versions 14–16 are edition E; positions 21–22 are modifiers only in edition E | Edition D national tails read as modifiers; versions 15–16 draw no frame shape | `ffe69a3`, `598a84d` |
 | APP-6B `G-C-OXAH` uses the ASW rotary wing icon | The tactical point draws nothing | `172ac6d` |
 | Named ESM exports in `index.js`, `types` first in `exports`, default-only UMD entry | `import { Symbol } from "milsymbol"` fails although `index.d.ts` declares it | `4cb165a` |
 
 ## Checks the Studio now does itself
 
-`studio/edition-check.js` covers two of the removed fixes for the Studio's
-badge only; plain milsymbol keeps upstream's verdict.
+`studio/edition-check.js` covers three of the removed fixes inside the Studio;
+plain milsymbol keeps upstream's drawing and verdict.
 
-- A numeric version other than 10–16 is not valid, with the old position 1–2
-  message in `details.sidcErrors`.
-- For edition D (versions 10–12) the first 20 digits decide the library
-  verdict, so an originator country at 21–23 does not make the symbol invalid.
-  Upstream still draws a modifier when 21–22 match one (156 China → 15).
+- A numeric version other than 10–16 is not valid in the Studio's badge, with
+  the old position 1–2 message in `details.sidcErrors`.
+- `drawingSidc()` gives milsymbol the first 20 digits of an edition D code
+  (versions 10–12). Upstream builds modifier keys from positions 21–22, so an
+  originator country (792 Türkiye) would make the symbol invalid, drop a chosen
+  sector modifier and shrink equipment icons. The SIDC box keeps all 30 digits.
+- `drawingSidc()` draws version 15 as 13 and 16 as 14. Upstream treats only 13
+  and 14 as edition E, so 15 and 16 lost frame shapes, including Sea Surface `A`.
 
 ## Restored refactors
 
