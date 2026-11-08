@@ -5,9 +5,9 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./index.d.ts",
       "require": "./dist/milsymbol.js",
-      "import": "./index.js"
+      "import": "./index.js",
+      "types": "./index.d.ts"
     },
     "./package.json": "./package.json"
   },
