@@ -571,6 +571,21 @@ textarea::placeholder {
   line-height: 1.5;
   word-break: break-all;
 }
+/* A 30-digit SIDC keeps one line. The code and Apply sit side by side only
+   from a column of about 400 px; below that Apply goes under the code. There
+   the code drops its letter spacing and scales from 14 px down to 12 px with
+   the card: 30 digits are about 18.1 em wide plus 26 px of padding and border,
+   so it fits the narrowest column (300 px, less a scrollbar). */
+@container (max-width: 365px) {
+  .sidc-input-row {
+    flex-direction: column;
+  }
+  .sidc-input-row #sidcInput {
+    flex: none;
+    font-size: clamp(12px, calc((100cqi - 26px) / 18.2), 14px);
+    letter-spacing: 0;
+  }
+}
 #sidcInput.dirty {
   border-color: #e3a008;
 }
