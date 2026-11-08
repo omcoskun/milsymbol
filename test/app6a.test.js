@@ -413,7 +413,7 @@ updated.setOptions({ higherFormation: "" });
 result["clearing a modifier restores validity"] = [updated.isValid(), true];
 updated.setOptions({ standard: "APP6" });
 result["changing edition removes APP6A validation"] = [
-  updated.metadata.validation.details.standard,
+  updated.metadata.validation,
   undefined
 ];
 

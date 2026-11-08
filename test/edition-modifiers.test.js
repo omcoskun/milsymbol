@@ -1,11 +1,9 @@
-// Placement and rules of the APP-6(B), MIL-STD-2525D, MIL-STD-2525E and APP-6(E)
-// profiles. The expected rows are copied by hand from the placement figures of
-// each publication (citations in docs/edition-modifiers.md), and compared with
-// what the renderer draws, so a wrong profile table fails here.
-import { ms, app6b, std2525c } from "../index.mjs";
+// Rules of the APP-6(B), MIL-STD-2525C/D/E, APP-6(D) and APP-6(E) profiles,
+// which the Studio runs (citations in docs/edition-modifiers.md). The library
+// draws these editions as upstream milsymbol 3.0.5.
 import { app6dProfile } from "../src/modifierprofiles/app6d.js";
-import { fieldKeys } from "../src/modifierprofiles/fieldtable.js";
 import { app6bProfile } from "../src/modifierprofiles/app6b.js";
+import { std2525cProfile } from "../src/modifierprofiles/std2525c.js";
 import { app6eProfile } from "../src/modifierprofiles/app6e.js";
 import { std2525dProfile } from "../src/modifierprofiles/std2525d.js";
 import { std2525eProfile } from "../src/modifierprofiles/std2525e.js";
@@ -18,85 +16,6 @@ import {
 } from "../studio/profile-controls.js";
 import { numericSidcEdition } from "../studio/sidc-editor.js";
 
-ms.reset();
-ms.addIcons(app6b);
-ms.addIcons(std2525c);
-
-const codes = Object.keys(fieldKeys);
-const allFields = (extra) => {
-  const options = {};
-  codes.forEach((code) => {
-    options[fieldKeys[code]] = code;
-  });
-  // AO is a bar with its own text, not a row.
-  options.engagementBar = "";
-  return Object.assign(options, extra || {});
-};
-
-// What the renderer drew: {left, right, centre} as row texts, top to bottom.
-function drawn(sidc, standard, extra) {
-  const svg = new ms.Symbol(sidc, allFields(extra), {
-    standard,
-    icon: false
-  }).asSVG();
-  const found = [
-    ...svg.matchAll(
-      /<text[^>]*?x="([^"]+)"[^>]*?y="([^"]+)"[^>]*?text-anchor="(\w+)"[^>]*>([^<]*)<\/text>/g
-    )
-  ].map((match) => ({
-    y: Number(match[2]),
-    anchor: match[3],
-    text: match[4]
-  }));
-  const side = (anchor) =>
-    found
-      .filter((item) => item.anchor === anchor)
-      .sort((a, b) => a.y - b.y)
-      .map((item) => item.text);
-  return { left: side("end"), right: side("start"), centre: side("middle") };
-}
-
-const figures = {
-  "APP-6(B) Figure 5 land unit": [
-    "SFGPUCI--------",
-    "APP6",
-    ["W", "X Y", "T", "Z"],
-    ["F", "G", "H", "M", "J K P"],
-    ["AA"]
-  ],
-  "APP-6(B) Figure 5 land equipment": [
-    "SHGPEWM--------",
-    "APP6",
-    ["W", "X Y", "V", "T", "Z"],
-    ["G", "H", "J L N P"],
-    ["C"],
-    { signatureEquipment: "L" }
-  ],
-  "APP-6(B) Figure 5 land installation": [
-    "SFGPIB---------",
-    "APP6",
-    ["W", "X Y", "T", "Z"],
-    ["G", "H", "J K P"],
-    []
-  ],
-  "APP-6(B) Figure 5 air": [
-    "SFAPMF---------",
-    "APP6",
-    ["W", "X Y", "V", "T", "Z"],
-    ["G", "H", "J N P"],
-    ["C"]
-  ]
-};
-
-const placement = {};
-Object.keys(figures).forEach((name) => {
-  const [sidc, standard, left, right, centre, extra] = figures[name];
-  const result = drawn(sidc, standard, extra);
-  placement[name + " left"] = [result.left, left];
-  placement[name + " right"] = [result.right, right];
-  placement[name + " top, inner and bottom"] = [result.centre, centre];
-});
-
 // What is wrong with a code or its text: errors and text rule warnings together.
 const errors = (profile, sidc, options) => {
   const { modifierErrors, fieldWarnings } = profile.validate(
@@ -105,8 +24,6 @@ const errors = (profile, sidc, options) => {
   ).details;
   return modifierErrors.concat(fieldWarnings.map((item) => item.message));
 };
-const valid = (sidc, options, standard) =>
-  new ms.Symbol(sidc, options || {}, { standard: standard }).isValid();
 const flags = (profile, base, at, pad) =>
   probeOffers(
     profile,
@@ -116,16 +33,7 @@ const flags = (profile, base, at, pad) =>
   ).map((item) => item.offered);
 
 export default {
-  "Edition modifier placement": placement,
   "Edition selection": {
-    "letter SIDCs with 2525 keep no APP-6(B) profile": [
-      new ms.Symbol("SFGPUCI--------", { standard: "2525" }).metadata.profile,
-      undefined
-    ],
-    "tactical graphics stay outside the APP-6(B) profile": [
-      new ms.Symbol("GFGPGPUUD------", { standard: "APP6" }).metadata.profile,
-      undefined
-    ],
     "control measures stay outside the numeric profiles": [
       std2525eProfile.fields("13032500001101000000"),
       null
@@ -133,38 +41,6 @@ export default {
     "the Studio reads 15 and 16 as edition E": [
       ["15", "16", "13", "12"].map((code) => numericSidcEdition(code)),
       ["e", "e", "e", "d"]
-    ]
-  },
-  "Separators and collapsed fields": {
-    "APP-6(B) 0213.b joins J K with one space": [
-      drawn("SFGPUCI--------", "APP6", {}).right.pop(),
-      "J K P"
-    ]
-  },
-  "The E descriptor is drawn once": {
-    "APP-6(B) Joker with other text: in the E row": [
-      new ms.Symbol("SJGPUCI--------", {
-        standard: "APP6",
-        staffComments: "HELLO"
-      })
-        .asSVG()
-        .match(/>J<\/text>/g).length,
-      1
-    ],
-    "APP-6(B) Joker alone: by the frame": [
-      new ms.Symbol("SJGPUCI--------", { standard: "APP6" })
-        .asSVG()
-        .match(/>J<\/text>/g).length,
-      1
-    ],
-    "2525C exercise equipment with text": [
-      new ms.Symbol("SGGPEWM--------", {
-        standard: "2525C",
-        staffComments: "HELLO"
-      })
-        .asSVG()
-        .match(/>X<\/text>/g).length,
-      1
     ]
   },
   "Fields of a class": {
@@ -326,10 +202,6 @@ export default {
       ),
       [0, 0, 1, 1, 1, 1]
     ],
-    "APP-6(B) draws no condition bar": [
-      new ms.Symbol("SFGDUCI--------", { standard: "APP6" }).metadata.condition,
-      ""
-    ],
     "2525D unit: feint, HQ, task force": [
       flags(std2525dProfile, "10031000001211000000", 7, "0"),
       [true, true, true, true]
@@ -369,16 +241,15 @@ export default {
       ],
       [1, 1]
     ],
-    "2525C task force on a ship is valid and drawn, with a note": [
+    "2525C task force on a ship is valid, with a note": [
       (() => {
-        const symbol = new ms.Symbol("SFSPCLCC--E----", { standard: "2525C" });
+        const result = std2525cProfile.validate("SFSPCLCC--E----", {});
         return [
-          symbol.isValid(),
-          symbol.metadata.taskForce,
-          symbol.isValid(true).notes.some((text) => /D Task Force/.test(text))
+          result.valid,
+          result.details.notes.some((text) => /D Task Force/.test(text))
         ];
       })(),
-      [true, true, true]
+      [true, true]
     ],
     "2525D unit takes an echelon, not mobility": [
       [
@@ -491,7 +362,7 @@ export default {
         std2525dProfile.validate("10031000161211000000", {}).valid,
         std2525eProfile.validate("13031000161211000000", {}).valid,
         app6eProfile.validate("16031000161211000000", {}).valid,
-        valid("SFGPUCI---F----", {}, "APP6")
+        app6bProfile.validate("SFGPUCI---F----", {}).valid
       ],
       [true, true, true, true]
     ],

@@ -1,6 +1,6 @@
 // A text value that breaks an edition's format warns and leaves the symbol valid;
 // a wrong code stays an error. The Studio's own examples must not warn.
-import { ms, app6a, app6b, std2525c } from "../index.mjs";
+import { ms, app6a } from "../index.mjs";
 import { app6aProfile } from "../src/modifierprofiles/app6a.js";
 import { app6bProfile } from "../src/modifierprofiles/app6b.js";
 import { app6dProfile } from "../src/modifierprofiles/app6d.js";
@@ -12,7 +12,7 @@ import { fieldGuide } from "../studio/field-guide.js";
 import { textModifiers } from "../studio/modifier-fields.js";
 
 ms.reset();
-[app6a, app6b, std2525c].forEach((set) => ms.addIcons(set));
+ms.addIcons(app6a);
 
 // [edition, standard, profile, land unit SIDC, a code wrong for that edition]
 const editions = [
@@ -57,8 +57,8 @@ const warned = (id) =>
     ? ["evaluationRating"]
     : ["evaluationRating", "uniqueDesignation"];
 for (const [id, standard, profile, sidc, wrong] of editions) {
-  if (/^\d/.test(sidc)) {
-    // The library draws number SIDCs as upstream; the profile checks them.
+  if (id !== "app6a") {
+    // The library draws these editions as upstream; the profile checks them.
     const checked = profile.validate(sidc, { ...bad });
     result[`${id}: broken text leaves the code valid`] = [checked.valid, true];
     result[`${id}: it warns by field`] = [

@@ -20,5 +20,5 @@ export default {
       ];
     }
     sId["S-P-L-----"] = [icn["SP.I.SPACE LAUNCH VEHICLE"]];
-  }
+  },
 };

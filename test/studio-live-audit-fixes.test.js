@@ -3,7 +3,6 @@
 // profiles cite: MIL-STD-2525C Table IV (PDF 28-30/22-24)
 // and Table A-III (PDF 87-88/81-82); APP-6A Table III (PDF 25-27/19-21);
 // APP-6D section 1.2.1 items 11-12 (PDF 38-39) and Table 3-22 (PDF 217-219).
-import { ms, std2525c } from "../index.mjs";
 import legacyStandards from "mil-std-2525";
 import natoStandards from "stanag-app6";
 import {
@@ -31,9 +30,6 @@ import {
 } from "../studio/profile-controls.js";
 import { fieldGuide } from "../studio/field-guide.js";
 
-ms.reset();
-ms.addIcons(std2525c);
-
 // -------------------------------- 2. 2525C catalogue installations keep H
 const collect = (dataset) => {
   const rows = [];
@@ -47,7 +43,6 @@ const collect = (dataset) => {
 };
 const rows2525c = collect(legacyStandards.ms2525c);
 const withH = rows2525c.filter((item) => legacyDefaultModifier(item, { installationModifier: true }) === "H-");
-ms.setStandard("2525C");
 const installation = {
   "every 2525C ground installation gets H, nothing else does (Table A-III)": [
     {
@@ -61,13 +56,9 @@ const installation = {
     collect(natoStandards.app6b).filter((item) => legacyDefaultModifier(item)).length,
     0
   ],
-  "Military Base/Facility with H draws the installation cap": [
-    [
-      new ms.Symbol("SFGPIB----H----", {}).metadata.installation,
-      new ms.Symbol("SFGPIB---------", {}).metadata.installation,
-      std2525cProfile.validate("SFGPIB----H----", {}).valid
-    ],
-    [true, false, true]
+  "Military Base/Facility with H is valid": [
+    std2525cProfile.validate("SFGPIB----H----", {}).valid,
+    true
   ]
 };
 

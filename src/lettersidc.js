@@ -27,7 +27,7 @@ const app6b = [
   sea,
   subsurface,
   sof,
-  tacticalpointsapp6
+  tacticalpointsapp6,
 ];
 // Keep edition bundles explicit: they share domain modules, not other bundles.
 const app6a = [
@@ -39,7 +39,7 @@ const app6a = [
   sea,
   subsurface,
   sof,
-  tacticalpointsapp6
+  tacticalpointsapp6,
 ];
 const std2525b = [
   space,
@@ -53,7 +53,7 @@ const std2525b = [
   signalsIntelligence,
   stabilityoperations,
   std2525bextra,
-  tacticalpoints2525
+  tacticalpoints2525,
 ];
 const std2525c = [
   space,
@@ -67,7 +67,7 @@ const std2525c = [
   signalsIntelligence,
   stabilityoperations,
   emergencymanagementsymbols,
-  tacticalpoints2525
+  tacticalpoints2525,
 ];
 
 export {
@@ -88,5 +88,5 @@ export {
   emergencymanagementsymbols,
   std2525bextra,
   tacticalpoints2525,
-  tacticalpointsapp6
+  tacticalpointsapp6,
 };

@@ -8,12 +8,6 @@ import {
   getApp6aFields,
   validateApp6aOptions
 } from "../modifierprofiles/app6a.js";
-import {
-  std2525cProfile,
-  std2525cModifierRules,
-  std2525cSymbolClass
-} from "../modifierprofiles/std2525c.js";
-import { app6bProfile } from "../modifierprofiles/app6b.js";
 import { applyProfile } from "../modifierprofiles/common.js";
 
 // APP-6A field rules live in the edition profile; re-exported for callers.
@@ -413,40 +407,6 @@ export function metadata(ms, metadata, mapping) {
         status,
         functionid
       });
-  }
-
-  if (metadata.std2525c && codingscheme == "S") {
-    // MIL-STD-2525C scheme S: the renderer follows the same class and Table
-    // A-II rules as the profile validator (src/modifierprofiles/std2525c.js).
-    const rules = std2525cModifierRules(this.options.sidc);
-    const cls = std2525cSymbolClass(this.options.sidc);
-    metadata.symbolClass = cls;
-    if ("-ABCDEFG".indexOf(symbolmodifier11) < 0 || !rules.draw.echelon)
-      metadata.echelon = "";
-    if (!rules.draw.taskForce) metadata.taskForce = false;
-    if (!rules.draw.mobility || !rules.draw.towedArray) metadata.mobility = "";
-    // AL is not applicable to units (Table IV, III-1, III-2).
-    if (cls == "unit") metadata.condition = "";
-    // Table A-I: battle dimension X (Other) has no frame and is not Unknown.
-    if (battledimension == "X") {
-      metadata.frame = false;
-      metadata.dimensionUnknown = false;
-    }
-    // Identity uncertainty (Tables I/II) and planned status stay separate data.
-    metadata.identityUncertain = ["P", "A", "S", "G", "M"].indexOf(affiliation) > -1;
-    metadata.plannedStatus = status == "A";
-  }
-  if (metadata.std2525c) {
-    metadata.edition = "C";
-    applyProfile(std2525cProfile, this.options.sidc, this.options, metadata);
-  }
-  // APP-6(B): letter SIDCs rendered with the APP6 standard. Scheme S only; Table
-  // B-I has status A and P, so no condition bar (src/modifierprofiles/app6b.js).
-  metadata.app6b = !metadata.STD2525 && !metadata.app6a && !metadata.std2525c;
-  if (metadata.app6b && codingscheme == "S") {
-    metadata.edition = "B";
-    metadata.condition = "";
-    applyProfile(app6bProfile, this.options.sidc, this.options, metadata);
   }
 
   return metadata;

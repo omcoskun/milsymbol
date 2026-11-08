@@ -2,9 +2,7 @@
 // standard: Table IV (PDF 28-30, printed 22-24), Table A-I (PDF 57, printed 51),
 // Table A-II (PDF 58-60, printed 52-54), Figure 2 (PDF 27, printed 21) and
 // 5.4.4 (PDF 40, printed 34) of MIL-STD-2525C, not from current output.
-import { ms, std2525c } from "../index.mjs";
 import { joinFields } from "../src/modifierprofiles/common.js";
-import { drawExtents, viewBoxOf, outside } from "./draw-extents.js";
 import {
   std2525cProfile,
   std2525cTableIV,
@@ -14,28 +12,6 @@ import {
   std2525cTextLayout
 } from "../src/modifierprofiles/std2525c.js";
 
-ms.reset();
-ms.addIcons(std2525c);
-ms.setStandard("2525C");
-
-function visit(parts) {
-  return parts.reduce(
-    (all, part) =>
-      all.concat(
-        Array.isArray(part)
-          ? visit(part)
-          : part
-            ? [part].concat(visit(part.draw || []))
-            : []
-      ),
-    []
-  );
-}
-const texts = (symbol) =>
-  visit(symbol.drawInstructions)
-    .filter((part) => part.type === "text")
-    .map((part) => part.text);
-const sym = (sidc, options) => new ms.Symbol(sidc, options || {});
 const errors = (sidc, options) =>
   std2525cValidate(sidc, options).details.modifierErrors;
 // Accepted: valid, and no text rule warns.
@@ -153,10 +129,6 @@ result["SOF rejects the equipment-only fields C L N V"] = [
 result["SOF is valid without a class note"] = [
   [ok(SOF), std2525cValidate(SOF).details.notes],
   [true, []]
-];
-result["SOF unit draws its echelon"] = [
-  sym("SFFPA-----" + "-E").metadata.echelon !== "",
-  true
 ];
 result["SOF rejects mobility like any unit"] = [ok("SFFPA-----MQ"), false];
 
@@ -296,10 +268,6 @@ result["L error text names identity H only"] = [
     "L signatureEquipment: not applicable to equipment symbols (L is for hostile equipment, identity H only)"
   ]
 ];
-result["L is not drawn for suspect equipment"] = [
-  texts(sym("SSGPEWM-----", { signatureEquipment: "!" })).indexOf("!"),
-  -1
-];
 result["L never applies to units or installations, even for H"] = [
   [
     ok("SHGPUCI-----", { signatureEquipment: "!" }),
@@ -315,10 +283,6 @@ result["N ENY only, independent of identity"] = [
     ok(UNIT, { hostile: "ENY" })
   ],
   [true, true, false, false]
-];
-result["H identity does not generate ENY"] = [
-  texts(sym("SHGPEWM-----")).indexOf("ENY"),
-  -1
 ];
 result["F display forms"] = [
   ["(+)", "(-)", "(±)"].map((v) => ok(UNIT, { reinforcedReduced: v })),
@@ -340,28 +304,6 @@ result["F transmission codes are not display values"] = [
     "GWPUAFNSH".indexOf(id) > -1
   ];
 });
-result["X Other is a note, not a frame"] = [
-  sym("SFXP--------").metadata.frame,
-  false
-];
-result["Joker friend shape red"] = [
-  [
-    sym("SJGPUCI-----").metadata.affiliation,
-    sym("SJGPUCI-----").metadata.joker
-  ],
-  ["Friend", true]
-];
-result["Faker friend shape"] = [
-  [
-    sym("SKGPUCI-----").metadata.affiliation,
-    sym("SKGPUCI-----").metadata.faker
-  ],
-  ["Friend", true]
-];
-result["Joker uses the hostile (red) frame colour"] = [
-  sym("SJGPUCI-----").colors.frameColor.Friend,
-  sym("SHGPUCI-----").colors.frameColor.Hostile
-];
 
 // Status.
 result["unit rejects C D X F"] = [
@@ -374,11 +316,6 @@ result["equipment accepts C D X F"] = [
   ["C", "D", "X", "F"].map((s) => ok("SFG" + s + "EWM-----")),
   [true, true, true, true]
 ];
-result["unit never draws AL"] = [sym("SFGCUCI-----").metadata.condition, ""];
-result["equipment C draws fully capable"] = [
-  sym("SFGCEWM-----").metadata.condition,
-  "FullyCapable"
-];
 result["status P on equipment is a recorded tension"] = [
   [ok(EQUIPMENT), std2525cValidate(EQUIPMENT).details.notes.length > 0],
   [true, true]
@@ -386,14 +323,6 @@ result["status P on equipment is a recorded tension"] = [
 result["on order needs status A"] = [
   [ok(UNIT, { dtg: "O/O" }), ok("SFGAUCI-----", { dtg: "O/O" })],
   [false, true]
-];
-result["planned and uncertainty kept apart"] = [
-  [
-    sym("SAGAUCI-----").metadata.identityUncertain,
-    sym("SAGAUCI-----").metadata.plannedStatus,
-    sym("SFGAUCI-----").metadata.identityUncertain
-  ],
-  [true, true, false]
 ];
 
 // SIDC 11-12 (Table A-II).
@@ -436,21 +365,8 @@ result["installation HQ ok, echelon not"] = [
   ["A-", "H-", "HB", "-A"].map((c) => sm(INSTALLATION, c)),
   [true, true, true, false]
 ];
-result["renderer agrees: equipment echelon and mobility on unit are not drawn; TF is"] =
-  [
-    [
-      sym("SFGPEWM---E-").metadata.taskForce,
-      sym("SFGPEWM----E").metadata.echelon,
-      sym("SFGPUCI---MQ").metadata.mobility
-    ],
-    [true, "", ""]
-  ];
-result["renderer: HA does not draw an echelon"] = [
-  sym("SFGPUCI---HA").metadata.echelon,
-  ""
-];
 
-// Figure 2 layout, single space, collapse of empties.
+// Figure 2 layout (profile rows; the library draws 2525C as upstream).
 const layout = std2525cTextLayout(UNIT);
 result["left rows"] = [
   layout.left,
@@ -491,207 +407,10 @@ result["joker descriptor J"] = [
   std2525cTextLayout("SJGPUCI-----").derived,
   { frameDescriptor: "J" }
 ];
-result["single space and collapse"] = [
-  texts(sym(UNIT, { evaluationRating: "B2", iffSif: "1234" })).filter(
-    (t) => t.indexOf("B2") > -1
-  ),
-  ["B2 1234"]
-];
-result["full right-lower group order"] = [
-  texts(
-    sym(UNIT, {
-      iffSif: "1234",
-      combatEffectiveness: "80%",
-      evaluationRating: "B2"
-    })
-  ).filter((t) => t.indexOf("B2") > -1),
-  ["B2 80% 1234"]
-];
-result["equipment J K L N P order"] = [
-  texts(
-    sym("SHGPEWM-----", {
-      evaluationRating: "A1",
-      signatureEquipment: "!",
-      hostile: "ENY",
-      iffSif: "12"
-    })
-  ).filter((t) => t.indexOf("A1") > -1),
-  ["A1 ! ENY 12"]
-];
-result["X Y share a row with one space"] = [
-  texts(sym(UNIT, { altitudeDepth: "100 FT AGL", location: "12.5N" })).filter(
-    (t) => t.indexOf("100") > -1
-  ),
-  ["100 FT AGL 12.5N"]
-];
-result["exercise X drawn once, without F"] = [
-  texts(sym("SDGPUCI-----")).filter((t) => t === "X"),
-  ["X"]
-];
-result["inapplicable text is not drawn"] = [
-  texts(
-    sym(UNIT, { quantity: "55", headquartersElement: "HQE", type: "TYPEX" })
-  ).filter((t) => ["55", "HQE", "TYPEX"].indexOf(t) > -1),
-  []
-];
-
-// Isolation: 2525 (B/C mix) keeps drawing everything; stale cache check.
-const mixed = (standard) =>
-  sym(UNIT, { standard: standard, quantity: "55", reinforcedReduced: "(+)" });
-result["2525 mix still draws C on a unit"] = [
-  texts(mixed("2525")).indexOf("55") > -1,
-  true
-];
-result["2525C does not"] = [texts(mixed("2525C")).indexOf("55") > -1, false];
-result["interleaved standards stay stable"] = [
-  [
-    texts(mixed("2525")).indexOf("55") > -1,
-    texts(mixed("2525C")).indexOf("55") > -1,
-    texts(mixed("2525")).indexOf("55") > -1
-  ],
-  [true, false, true]
-];
-result["2525 unit with status C keeps its bar"] = [
-  new ms.Symbol("SFGCUCI-----", { standard: "2525" }).metadata.condition,
-  "FullyCapable"
-];
 
 // AL operational condition (Table IV AL: equipment and installations; 5.3.4.12,
-// PDF 37 / 31). Table III-2 (PDF 25 / 19) alternate: a coloured bar under the
-// symbol, green fully capable, yellow damaged, red destroyed, blue full to
-// capacity. The colours were sampled from the page render of the PDF: (0,255,0),
-// (255,255,0), (255,0,0) and (0,176,240); a tolerance of 6 per channel covers
-// raster sampling. The bar is as wide as the frame (measured 92-100% of the
-// symbol width on the page) and sits below it. Table III-1 (PDF 24-25 / 18-19)
-// static: damaged is a single slash, destroyed a cross, fully capable has no
-// mark and full to capacity is N/A.
-const rgb = (fill) => String(fill).match(/\d+/g).map(Number);
-const near = (fill, expected) =>
-  rgb(fill).every((value, i) => Math.abs(value - expected[i]) <= 6);
-const alDimensions = [
-  ["air", "SFA?MF------"],
-  ["space", "SFP?S-------"],
-  ["land equipment", "SFG?EWM-----"],
-  ["land installation", "SFG?IB------"],
-  ["sea surface", "SFS?CL------"],
-  ["subsurface", "SFU?S-------"]
-];
-const alColours = {
-  C: [0, 255, 0],
-  D: [255, 255, 0],
-  X: [255, 0, 0],
-  F: [0, 176, 240]
-};
-const alParts = (symbol) =>
-  visit(symbol.drawInstructions).filter(
-    (part) => part.type === "path" && !part.icon
-  );
-const alBars = (symbol) =>
-  alParts(symbol).filter((part) =>
-    /^M-?[\d.]+,-?[\d.]+ l[\d.]+,0 0,25 /.test(part.d || "")
-  );
-const alSlashes = (symbol) =>
-  alParts(symbol).filter((part) =>
-    /^M(150,20 L50,180|50,20 L150,180)$/.test(part.d || "")
-  );
-alDimensions.forEach(([name, template]) => {
-  "CDXF".split("").forEach((status) => {
-    const sidc = template.replace("?", status);
-    const label = name + " status " + status;
-    const symbol = sym(sidc);
-    const bars = alBars(symbol);
-    const frameBox = symbol.metadata.baseGeometry.bbox;
-    const view = viewBoxOf(symbol.asSVG());
-    result[label + ": one bar in the Table III-2 colour"] = [
-      [bars.length, bars.length === 1 && near(bars[0].fill, alColours[status])],
-      [1, true]
-    ];
-    if (bars.length === 1) {
-      const m = /^M(-?[\d.]+),(-?[\d.]+) l([\d.]+),0 0,(\d+)/.exec(bars[0].d);
-      const x = parseFloat(m[1]);
-      const y = parseFloat(m[2]);
-      const width = parseFloat(m[3]);
-      result[label + ": bar is below the frame and as wide as the frame"] = [
-        [
-          y >= frameBox.y2,
-          width / frameBox.width() >= 0.92,
-          width / frameBox.width() <= 1.0001,
-          x >= frameBox.x1 - 0.001
-        ],
-        [true, true, true, true]
-      ];
-    }
-    result[label + ": bar lies inside the SVG viewBox"] = [
-      drawExtents(symbol.drawInstructions, symbol.style.strokeWidth)
-        .filter((e) => outside(e.outer, view))
-        .map((e) => e.part.d || e.part.text),
-      []
-    ];
-    const plain = sym(sidc, { simpleStatusModifier: true });
-    const slashes = alSlashes(plain);
-    result[label + ": static modifier (Table III-1) draws no bar"] = [
-      alBars(plain).length,
-      0
-    ];
-    const expected = { C: 0, D: 1, X: 2, F: 0 }[status];
-    result[label + ": static modifier has " + expected + " slash(es)"] = [
-      slashes.length,
-      expected
-    ];
-    const staticView = viewBoxOf(plain.asSVG());
-    result[label + ": static slashes lie inside the SVG viewBox"] = [
-      drawExtents(plain.drawInstructions, plain.style.strokeWidth)
-        .filter((e) => outside(e.outer, staticView))
-        .map((e) => e.part.d || e.part.text),
-      []
-    ];
-  });
-  ["P", "A"].forEach((status) => {
-    const symbol = sym(template.replace("?", status));
-    result[name + " status " + status + ": no AL bar and no slash"] = [
-      [
-        alBars(symbol).length,
-        alSlashes(
-          sym(template.replace("?", status), { simpleStatusModifier: true })
-        ).length
-      ],
-      [0, 0]
-    ];
-  });
-});
-// Damaged is "/" (lower left to upper right); destroyed adds the other diagonal.
-const damaged = alSlashes(
-  sym("SFGDEWM-----", { simpleStatusModifier: true })
-)[0];
-result["static damaged slash rises to the right"] = [
-  damaged.d
-    .replace(/^M/, "")
-    .split(" L")
-    .map((point) => point.split(",").map(Number)),
-  [
-    [150, 20],
-    [50, 180]
-  ]
-];
-result["destroyed draws both diagonals"] = [
-  alSlashes(sym("SFGXEWM-----", { simpleStatusModifier: true }))
-    .map((p) => p.d)
-    .sort(),
-  ["M150,20 L50,180", "M50,20 L150,180"]
-];
-// Units have no AL: no bar and no slash, in either representation.
-["C", "D", "X", "F"].forEach((status) => {
-  ["SFG?UCI-----", "SFF?A-------"].forEach((template) => {
-    const sidc = template.replace("?", status);
-    result["unit " + sidc + " draws no AL in any representation"] = [
-      [
-        alBars(sym(sidc)).length,
-        alSlashes(sym(sidc, { simpleStatusModifier: true })).length
-      ],
-      [0, 0]
-    ];
-  });
-});
+// PDF 37 / 31). Table III-1 (PDF 24-25 / 18-19): full to capacity is N/A in the
+// static form.
 result["AL is a Studio-visible fact: unit status C is an error"] = [
   std2525cValidate("SFGCUCI-----").details.modifierErrors.length,
   1
@@ -719,10 +438,9 @@ const equipmentBases = [
 ];
 Object.keys(arrays).forEach((code) => {
   equipmentBases.forEach(([name, base]) => {
-    const symbol = sym(base + code);
-    result["towed array " + code + " on " + name + " is accepted and drawn"] = [
-      [ok(base + code), symbol.metadata.mobility],
-      [true, arrays[code]]
+    result["towed array " + code + " on " + name + " is accepted"] = [
+      ok(base + code),
+      true
     ];
   });
   [
@@ -730,66 +448,18 @@ Object.keys(arrays).forEach((code) => {
     ["installation", "SFGPIB----"],
     ["SOF unit", "SFFPA-----"]
   ].forEach(([name, base]) => {
-    const symbol = sym(base + code);
-    result[
-      "towed array " + code + " on " + name + " is an error and not drawn"
-    ] = [
-      [
-        ok(base + code),
-        symbol.metadata.mobility,
-        errors(base + code).some((e) => /^AG /.test(e))
-      ],
-      [false, "", true]
+    result["towed array " + code + " on " + name + " is an error"] = [
+      [ok(base + code), errors(base + code).some((e) => /^AG /.test(e))],
+      [false, true]
     ];
   });
   result[
     "towed array " + code + " on an unknown-class symbol is not rejected"
   ] = [ok("SFZPS-----" + code), true];
 });
-// Short = 3 markers (both ends and the middle), long = 5 (ends and every
-// quarter), joined by a line below the symbol (Table VII, PDF 34 / 28). The
-// marker glyph itself (a square with a tick in the PDF, a diamond here for the
-// inner markers) is a drawing detail that is not compared.
-const arrayPath = (symbol) =>
-  visit(symbol.drawInstructions).filter(
-    (part) => part.type === "path" && /^M 50,5 l 100,0/.test(part.d || "")
-  );
-result["towed array short has 3 markers on a 100 unit line"] = [
-  arrayPath(sym("SFUPS-----NS")).map((p) => (p.d.match(/z/g) || []).length),
-  [3]
-];
-result["towed array long has 5 markers on a 100 unit line"] = [
-  arrayPath(sym("SFUPS-----NL")).map((p) => (p.d.match(/z/g) || []).length),
-  [5]
-];
-result["towed array is drawn below the symbol and inside the viewBox"] =
-  (() => {
-    const symbol = sym("SFUPS-----NL");
-    const view = viewBoxOf(symbol.asSVG());
-    const frameBox = symbol.metadata.baseGeometry.bbox;
-    const shapes = drawExtents(
-      symbol.drawInstructions,
-      symbol.style.strokeWidth
-    );
-    const array = shapes.filter((e) =>
-      /^M 50,5 l 100,0/.test(e.part.d || "")
-    )[0];
-    return [
-      [
-        array.box.y1 >= frameBox.y2,
-        shapes.filter((e) => outside(e.outer, view)).length
-      ],
-      [true, 0]
-    ];
-  })();
 result["towed array SIDC code letters only: NX is not an array code"] = [
-  [ok("SFUPS-----NX"), !!sym("SFUPS-----NX").metadata.mobility],
-  [false, false]
-];
-result["towed array: no MO..MY mobility is drawn for NS/NL"] = [
-  sym("SFUPS-----NS").metadata.mobility !==
-    sym("SFUPS-----MS").metadata.mobility,
-  true
+  ok("SFUPS-----NX"),
+  false
 ];
 result["towed array does not apply with an array text option"] = [
   ok(EQUIPMENT, { auxiliaryEquipmentIndicator: "NS" }),
@@ -854,23 +524,13 @@ result["joinFields keeps non-blank values untrimmed"] = [
   (sidc) => {
     BLANKS.forEach((blank, i) => {
       const name = "blank " + i + " on " + sidc;
-      const blanked = sym(sidc, allBlank(blank));
-      const plain = sym(sidc);
-      result[name + ": renders exactly like no text"] = [
-        blanked.asSVG(),
-        plain.asSVG()
-      ];
-      result[name + ": same bounding box"] = [
-        [blanked.bbox.x1, blanked.bbox.x2, blanked.bbox.y1, blanked.bbox.y2],
-        [plain.bbox.x1, plain.bbox.x2, plain.bbox.y1, plain.bbox.y2]
-      ];
       result[name + ": no validation error"] = [
         std2525cValidate(sidc, allBlank(blank)).details.modifierErrors,
         std2525cValidate(sidc).details.modifierErrors
       ];
-      result[name + ": symbol is as valid as without text"] = [
-        blanked.isValid(),
-        plain.isValid()
+      result[name + ": as valid as without text"] = [
+        std2525cValidate(sidc, allBlank(blank)).valid,
+        std2525cValidate(sidc).valid
       ];
     });
   }
@@ -900,74 +560,5 @@ result["whitespace plus text counts as text (length includes spaces)"] = [
   ok(UNIT, { staffComments: " ".repeat(10) + "x".repeat(11) }),
   false
 ];
-result["blank X keeps no leading space before Y"] = [
-  texts(sym(UNIT, { altitudeDepth: "   ", location: "12.5N" })),
-  ["12.5N"]
-];
-result["blank Y keeps no trailing space after X"] = [
-  texts(sym(UNIT, { altitudeDepth: "100 FT", location: "\t" })),
-  ["100 FT"]
-];
-result["blank K does not split J and P"] = [
-  texts(
-    sym(UNIT, {
-      evaluationRating: "B2",
-      combatEffectiveness: "  ",
-      iffSif: "7"
-    })
-  ),
-  ["B2 7"]
-];
-result["blank J K L N leaves P alone"] = [
-  texts(
-    sym("SHGPEWM-----", {
-      evaluationRating: " ",
-      signatureEquipment: " ",
-      hostile: " ",
-      iffSif: "12"
-    })
-  ),
-  ["12"]
-];
-result["blank F: exercise X is drawn alone and once"] = [
-  texts(sym("SDGPUCI-----", { reinforcedReduced: "  " })),
-  ["X"]
-];
-result["blank F: joker J is drawn alone and once"] = [
-  texts(sym("SJGPUCI-----", { reinforcedReduced: " " })),
-  ["J"]
-];
-result["blank quantity C creates no top text and no extra height"] = [
-  [
-    texts(sym(EQUIPMENT, { quantity: "  " })),
-    sym(EQUIPMENT, { quantity: "  " }).bbox.y1
-  ],
-  [[], sym(EQUIPMENT).bbox.y1]
-];
-result["blank AA creates no inner text and no extra width"] = [
-  [
-    texts(sym(UNIT, { specialHeadquarters: "          " })),
-    sym(UNIT, { specialHeadquarters: "          " }).bbox.x2
-  ],
-  [[], sym(UNIT).bbox.x2]
-];
-result["blank AO draws no engagement bar"] = [
-  sym(UNIT, { engagementBar: "   " }).bbox.y1,
-  sym(UNIT).bbox.y1
-];
-result["blank direction Q draws no arrow"] = [
-  sym(UNIT, { direction: " " }).asSVG(),
-  sym(UNIT).asSVG()
-];
-result["blank value is not trimmed away from real text"] = [
-  texts(sym(UNIT, { staffComments: " x " })),
-  [" x "]
-];
-result["the caller's options object is not modified"] = (() => {
-  const given = { quantity: "  ", staffComments: " " };
-  sym(EQUIPMENT, given);
-  return [given, { quantity: "  ", staffComments: " " }];
-})();
 
-ms.reset();
 export default { "MIL-STD-2525C modifiers": result };

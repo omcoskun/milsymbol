@@ -80,12 +80,11 @@ export default function getMetadata() {
     metadata.STD2525 = !["APP6", "APP6A"].includes(this.style.standard);
   }
 
-  // Editions with their own modifier profile: APP-6A and MIL-STD-2525C.
+  // APP-6A is the only edition with its own modifier profile.
   const standardEdition = this.style.standard
-    ? { APP6A: "A", "2525C": "C" }[this.style.standard] || ""
+    ? { APP6A: "A" }[this.style.standard] || ""
     : ms._standardEdition;
   metadata.app6a = standardEdition === "A";
-  metadata.std2525c = standardEdition === "C";
   if (metadata.app6a) {
     metadata.edition = "A";
     // Fail closed until a registered letter provider validates this edition.

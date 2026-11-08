@@ -261,11 +261,6 @@ ms.setStandard = function (standard) {
     this._standardEdition = "A";
     return true;
   }
-  if (standard == "2525C") {
-    this._STD2525 = true;
-    this._standardEdition = "C";
-    return true;
-  }
   return false;
 };
 
