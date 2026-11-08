@@ -1,5 +1,4 @@
 //Icon #################################################################################
-import { classifySectorCode } from "../modifierprofiles/app6d-sectors.js";
 export default function icon(ms) {
   const drawArray1 = [];
   const drawArray2 = [];
@@ -359,23 +358,9 @@ export default function icon(ms) {
         drawArray2.push(iconParts["GR.IC.FF.CORPS SUPPORT"]);
       if (this.metadata.functionid.substr(4, 2) == "98")
         drawArray2.push(iconParts["GR.IC.FF.THEATRE SUPPORT"]);
-      // APP-6(D): draw only dictionary sector codes (Annex A) and none on local tracks.
-      const app6dDraw = (n) => {
-        if (!this.metadata.app6d) return true;
-        const fid = this.metadata.functionid;
-        const set = String(this.options.sidc).substring(4, 6);
-        const local = {
-          30: ["160000", "170000"],
-          35: ["140000", "150000", "160000"]
-        }[set];
-        if (local && local.indexOf(fid.substr(0, 6)) >= 0) return false;
-        return (
-          classifySectorCode(set, n, fid.substr(n === 1 ? 6 : 8, 2)) === "defined"
-        );
-      };
       //Modifier 1
       if (this.metadata._modifier1.substr(0, 1) == "0") {
-        if (this.metadata.functionid.substr(6, 2) != "00" && app6dDraw(1)) {
+        if (this.metadata.functionid.substr(6, 2) != "00") {
           const modifier1 = m1[this.metadata.functionid.substr(6, 2)];
           if (typeof modifier1 === "undefined") {
             this.validIcon = false;
@@ -394,7 +379,7 @@ export default function icon(ms) {
 
       //Modifier 2
       if (this.metadata._modifier2.substr(0, 1) == "0") {
-        if (this.metadata.functionid.substr(8, 2) != "00" && app6dDraw(2)) {
+        if (this.metadata.functionid.substr(8, 2) != "00") {
           const modifier2 = m2[this.metadata.functionid.substr(8, 2)];
           if (typeof modifier2 === "undefined") {
             this.validIcon = false;

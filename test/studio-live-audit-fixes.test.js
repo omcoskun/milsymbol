@@ -1,9 +1,9 @@
 // Regression tests for the live-site audit of 3 November 2026
 // (output/live-site-audit). Expected values come from the publications the
-// profiles cite: MIL-STD-2525C Figure 2 (PDF 27/21), Table IV (PDF 28-30/22-24)
+// profiles cite: MIL-STD-2525C Table IV (PDF 28-30/22-24)
 // and Table A-III (PDF 87-88/81-82); APP-6A Table III (PDF 25-27/19-21);
 // APP-6D section 1.2.1 items 11-12 (PDF 38-39) and Table 3-22 (PDF 217-219).
-import { ms, std2525c, app6d } from "../index.mjs";
+import { ms, std2525c } from "../index.mjs";
 import legacyStandards from "mil-std-2525";
 import natoStandards from "stanag-app6";
 import {
@@ -33,71 +33,6 @@ import { fieldGuide } from "../studio/field-guide.js";
 
 ms.reset();
 ms.addIcons(std2525c);
-ms.addIcons(app6d);
-
-const visit = (parts) =>
-  parts.reduce(
-    (all, part) =>
-      all.concat(
-        Array.isArray(part)
-          ? visit(part)
-          : part
-            ? [part].concat(visit(part.draw || []))
-            : []
-      ),
-    []
-  );
-// The quantity glyph top and the engagement bar bottom, in symbol units.
-function aoAndQuantity(standard, sidc, options) {
-  ms.setStandard(standard);
-  const symbol = new ms.Symbol(sidc, Object.assign({ size: 100 }, options));
-  const parts = visit(symbol.drawInstructions);
-  const text = (value) => parts.find((part) => part.type === "text" && part.text === value);
-  const bar = parts.find((part) => part.type === "path" && /^M[-\d.]+,[-\d.]+ l[-\d.]+,0 0,-25 /.test(part.d));
-  const quantity = text(options.quantity);
-  return {
-    valid: symbol.isValid(),
-    ao: text(options.engagementBar) ? text(options.engagementBar).y : null,
-    quantity: quantity ? quantity.y : null,
-    barBottom: bar ? Number(/^M[-\d.]+,([-\d.]+)/.exec(bar.d)[1]) : null,
-    // A text glyph reaches about 0.75 of its font size above the baseline.
-    quantityTop: quantity ? quantity.y - 0.75 * quantity.fontsize : null
-  };
-}
-
-// --------------------------------------------- 1. 2525C C and AO collide
-const overlap = {};
-[
-  ["equipment", "SFGPEWM--------"],
-  ["air platform", "SFAPMF---------"]
-].forEach(([label, sidc]) => {
-  const drawn = aoAndQuantity("2525C", sidc, { quantity: "12", engagementBar: "ENG" });
-  overlap[`2525C ${label}: AO sits above the quantity (Figure 2)`] = [
-    { valid: drawn.valid, clear: drawn.barBottom <= drawn.quantityTop },
-    { valid: true, clear: true }
-  ];
-});
-overlap["2525C: without a quantity the bar stays on the frame"] = [
-  aoAndQuantity("2525C", "SFGPEWM--------", { engagementBar: "ENG" }).ao,
-  29
-];
-overlap["2525C: the quantity does not move"] = [
-  [
-    aoAndQuantity("2525C", "SFGPEWM--------", { quantity: "12", engagementBar: "ENG" }).quantity,
-    aoAndQuantity("2525C", "SFGPEWM--------", { quantity: "12" }).quantity
-  ],
-  [30, 30]
-];
-overlap["APP-6D equipment and unit keep their AO and C positions"] = [
-  [
-    aoAndQuantity("APP6", "10061500001201000000", { quantity: "12", engagementBar: "ENG" }),
-    aoAndQuantity("APP6", "10031000141211000000", { quantity: "12", engagementBar: "ENG" })
-  ].map(({ ao, quantity, barBottom }) => [ao, quantity, barBottom]),
-  [
-    [-22, 18, -17],
-    [-27.5, 12.5, -22.5]
-  ]
-];
 
 // -------------------------------- 2. 2525C catalogue installations keep H
 const collect = (dataset) => {
@@ -390,7 +325,6 @@ const groups = {
 
 export default {
   "9 palette groups": groups,
-  "1 2525C quantity and engagement bar": overlap,
   "2 2525C catalogue installations": installation,
   "3 engagement bar colour with AO": engagement,
   "4 direction and speed leader by edition and class": movementCases,

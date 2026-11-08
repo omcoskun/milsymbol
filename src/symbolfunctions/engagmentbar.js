@@ -11,31 +11,9 @@ export default function engagement(ms) {
   // APP-6A Table III has no engagement bar field (AO is a later edition).
   if (
     this.options.engagementBar !== "" &&
-    !(this.metadata.app6a && this.options.sidc[0] === "S") &&
-    !(this.metadata.app6b && this.options.sidc[0] === "S")
+    !(this.metadata.app6a && this.options.sidc[0] === "S")
   ) {
-    // APP-6(D) and MIL-STD-2525C: AO sits above the B/C/D cell, so above a
-    // quantity text (APP-6D Figure 3-3 PDF 84/3-4, Figure 3-14 PDF 161/3-81;
-    // 2525C Figure 2 PDF 27/21). 2525C draws C on the frame (no quantityTop).
-    let aoLift = 0;
-    if (
-      (this.metadata.app6d ||
-        this.metadata.std2525c ||
-        (this.metadata.textLayout || {}).quantityAbove) &&
-      this.style.infoFields &&
-      this.options.quantity &&
-      ((this.metadata.textLayout || {}).top || []).indexOf("quantity") >= 0
-    ) {
-      const quantityTop =
-        this.metadata.quantityTop !== undefined
-          ? this.metadata.quantityTop
-          : this.metadata.baseGeometry.bbox.y1;
-      aoLift = Math.max(
-        0,
-        bbox.y1 - (quantityTop - 10 - this.style.infoSize * 0.75) - 1
-      );
-    }
-    y1 -= 6 + aoLift;
+    y1 -= 6;
     const fontFamily = this.style.fontfamily;
     const fontColor =
       this.colors.iconColor[this.metadata.affiliation] ||
@@ -45,7 +23,7 @@ export default function engagement(ms) {
       type: "text",
       text: this.options.engagementBar,
       x: 100,
-      y: bbox.y1 - 11 - aoLift,
+      y: bbox.y1 - 11,
       textanchor: "middle",
       fontsize: 22,
       fontfamily: fontFamily,

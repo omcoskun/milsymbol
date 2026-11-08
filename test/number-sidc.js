@@ -1,6 +1,4 @@
-// identityFor(symbolset, code) may return another standard identity digit for
-// entities whose APP-6(D) text restricts it (default 3, Friend).
-export default function (ms, sidc, identityFor) {
+export default function (ms, sidc) {
   const mainIcon = {};
   for (let i = 0; i < sidc.mainIcon.length; i++) {
     if (
@@ -16,12 +14,7 @@ export default function (ms, sidc, identityFor) {
         sidc.mainIcon[i]["Entity Type"] ||
         sidc.mainIcon[i]["Entity"]);
     const valid = new ms.Symbol(
-      "100" +
-        (identityFor ? identityFor(sidc.symbolset, sidc.mainIcon[i]["Code"]) : "3") +
-        sidc.symbolset +
-        "0000" +
-        sidc.mainIcon[i]["Code"] +
-        "0000"
+      "1003" + sidc.symbolset + "0000" + sidc.mainIcon[i]["Code"] + "0000"
     ).isValid();
     mainIcon[icon] = [valid, true];
   }
@@ -52,16 +45,14 @@ export default function (ms, sidc, identityFor) {
       modifier1[icon] = [valid, true];
     }
     if (sidc.modifier1[i]["Code"] && sidc.modifier1[i]["Code"].length == 3) {
-      // Three-digit common modifiers belong to edition E (version 13).
-      const symbol = new ms.Symbol((
-        "1303" +
+      valid = new ms.Symbol(
+        "1003" +
           (sidc.symbolset || "10") +
           "0000000000" +
           sidc.modifier1[i]["Code"].substr(1, 2) +
           "00" +
           sidc.modifier1[i]["Code"].substr(0, 1)
-      ).padEnd(30, "0"));
-      valid = symbol.isValid() && symbol.metadata._modifier1 === sidc.modifier1[i]["Code"];
+      ).isValid();
       modifier1[icon] = [valid, true];
     }
   }
@@ -89,16 +80,14 @@ export default function (ms, sidc, identityFor) {
       modifier2[icon] = [valid, true];
     }
     if (sidc.modifier2[i]["Code"] && sidc.modifier2[i]["Code"].length == 3) {
-      const symbol = new ms.Symbol((
-        "1303" +
+      valid = new ms.Symbol(
+        "1003" +
           (sidc.symbolset || "10") +
           "0000000000" +
-          "00" +
           sidc.modifier2[i]["Code"].substr(1, 2) +
-          "0" +
+          "00" +
           sidc.modifier2[i]["Code"].substr(0, 1)
-      ).padEnd(30, "0"));
-      valid = symbol.isValid() && symbol.metadata._modifier2 === sidc.modifier2[i]["Code"];
+      ).isValid();
       modifier2[icon] = [valid, true];
     }
   }

@@ -472,8 +472,8 @@ result["numeric APP6A fails without a letter provider"] = [
 ];
 result["numeric provider does not attach letter validation"] = [
   new ms.Symbol("130310000012110000000000000000", { standard: "2525" }).metadata
-    .validation.details.profile,
-  "2525e"
+    .validation,
+  undefined
 ];
 ms.reset();
 

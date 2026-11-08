@@ -443,18 +443,6 @@ export default function modifier(ms) {
       gbbox.merge({ y1: bbox.y1 - 20 });
     }
   }
-  // APP-6(D) B/C/D cell (Figure 3-3 PDF 84/3-4, Figure 3-14 PDF 161/3-81): a
-  // quantity (C) sits above the task force bracket and the echelon.
-  if (this.metadata.app6d || (this.metadata.textLayout || {}).quantityAbove) {
-    let quantityTop = bbox.y1;
-    if (this.metadata.taskForce) quantityTop = bbox.y1 - 40;
-    if (echelons.hasOwnProperty(this.metadata.echelon))
-      quantityTop = Math.min(
-        quantityTop,
-        bbox.y1 + echelons[this.metadata.echelon].bbox.y1
-      );
-    this.metadata.quantityTop = quantityTop;
-  }
   //Assign fill, stroke and stroke-width
   for (let i = 0; i < drawArray1.length; i++) {
     if (drawArray1[i].hasOwnProperty("fill") && drawArray1[i].fill === true)

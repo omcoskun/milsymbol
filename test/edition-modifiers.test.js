@@ -2,7 +2,8 @@
 // profiles. The expected rows are copied by hand from the placement figures of
 // each publication (citations in docs/edition-modifiers.md), and compared with
 // what the renderer draws, so a wrong profile table fails here.
-import { ms, app6b, app6d, std2525c, std2525d, std2525e } from "../index.mjs";
+import { ms, app6b, std2525c } from "../index.mjs";
+import { app6dProfile } from "../src/modifierprofiles/app6d.js";
 import { fieldKeys } from "../src/modifierprofiles/fieldtable.js";
 import { app6bProfile } from "../src/modifierprofiles/app6b.js";
 import { app6eProfile } from "../src/modifierprofiles/app6e.js";
@@ -20,9 +21,6 @@ import { numericSidcEdition } from "../studio/sidc-editor.js";
 ms.reset();
 ms.addIcons(app6b);
 ms.addIcons(std2525c);
-ms.addIcons(app6d);
-ms.addIcons(std2525d);
-ms.addIcons(std2525e);
 
 const codes = Object.keys(fieldKeys);
 const allFields = (extra) => {
@@ -59,217 +57,6 @@ function drawn(sidc, standard, extra) {
 }
 
 const figures = {
-  "2525D Figure C-3 air": [
-    "10030100001101000000",
-    "2525",
-    [],
-    ["T", "P", "V", "Z X", "G H"],
-    []
-  ],
-  "2525D Figure B-3 space": [
-    "10030500001101000000",
-    "2525",
-    [],
-    ["T", "V", "Z X", "G H"],
-    []
-  ],
-  "2525D Figure D-4 land unit": [
-    "10031000001211000000",
-    "2525",
-    ["W", "X Y", "T", "Z"],
-    ["F AS", "G", "H", "M", "J K P"],
-    ["AA"]
-  ],
-  "2525D Figure D-5 land equipment": [
-    "10031500001101000000",
-    "2525",
-    ["W AR", "X Y", "V AD AE", "T", "Z"],
-    ["G AQ", "H AF", "J L N P"],
-    ["C"],
-    { hostile: "N" }
-  ],
-  "2525D Figure D-6 land installation": [
-    "10032000001101000000",
-    "2525",
-    ["W", "X Y", "T"],
-    ["G", "H", "J K P"],
-    []
-  ],
-  "2525D Figure E-2 sea surface": [
-    "10033000001201000000",
-    "2525",
-    ["AQ AR"],
-    ["T", "V", "P", "G H", "Y Z"],
-    []
-  ],
-  "2525D Figure F-3 sea subsurface": [
-    "10033500001101000000",
-    "2525",
-    ["AR"],
-    ["T", "V", "X", "G", "H"],
-    []
-  ],
-  "2525D Figure G-2 activities": [
-    "10034000001101000000",
-    "2525",
-    ["W", "Y"],
-    ["AS", "G", "H", "J"],
-    []
-  ],
-  "2525D Figure L-2 cyberspace": [
-    "10036000001101000000",
-    "2525",
-    ["W", "Y", "T V"],
-    ["F AS", "G", "H", "M", "K L"],
-    []
-  ],
-  "2525E Figure D-3 air": [
-    "13030100001101000000",
-    "2525",
-    ["W", "AR", "AD"],
-    ["AS", "T Y", "V AF", "P X Z", "G H J"],
-    ["C"]
-  ],
-  "2525E Figure C-2 space": [
-    "13030500001101000000",
-    "2525",
-    ["W", "AR", "AD"],
-    ["AS", "T Y", "V AF", "P X Z", "G H J"],
-    ["C"]
-  ],
-  "2525E Figure E-3 land unit": [
-    "13031000001211000000",
-    "2525",
-    ["W AR", "X Y", "V AD AE", "C T", "Z"],
-    ["F AS", "G AQ", "H AF", "M", "J K L P"],
-    ["AA", "AW"]
-  ],
-  "2525E Figure E-4 land equipment": [
-    "13031500001101000000",
-    "2525",
-    ["W", "X Y", "V AD AE", "C T", "Z"],
-    ["AS", "G AQ", "H AF", "J K L N P"],
-    []
-  ],
-  "2525E Figure E-5 land installation": [
-    "13032000001101000000",
-    "2525",
-    ["W", "X Y", "C AE AX", "T"],
-    ["AS", "G AQ", "H", "M", "J K P"],
-    ["AA"]
-  ],
-  "2525E Figure F-2 dismounted individual": [
-    "13032700001101000000",
-    "2525",
-    ["W", "X Y", "V AF", "T", "Z"],
-    ["AS", "G", "H", "M", "J K P"],
-    ["C"]
-  ],
-  "2525E Figure G-2 sea surface": [
-    "13033000001201000000",
-    "2525",
-    ["AQ AR"],
-    ["AS", "T", "V", "P", "G H", "Y Z"],
-    []
-  ],
-  "2525E Figure H-3 sea subsurface": [
-    "13033500001101000000",
-    "2525",
-    ["AR", "X"],
-    ["AS", "T", "V", "P", "G H", "Y Z"],
-    []
-  ],
-  "2525E Figure I-2 activities": [
-    "13034000001101000000",
-    "2525",
-    ["W", "Y", "C"],
-    ["AS", "T", "G", "H", "J"],
-    []
-  ],
-  "2525E Figure K-2 cyberspace": [
-    "13036000001101000000",
-    "2525",
-    ["W", "Y", "V", "T"],
-    ["F AS", "G", "H", "M", "K L"],
-    []
-  ],
-  "2525E 5.3.7 mine warfare has no amplifiers": [
-    "13033600001101000000",
-    "2525",
-    [],
-    [],
-    []
-  ],
-  "APP-6(E) Figure 2-2 air": [
-    "16030100001101000000",
-    "APP6",
-    [],
-    ["T AS", "P", "V", "Z X", "G H"],
-    []
-  ],
-  "APP-6(E) Figure 6-2 space": [
-    "16030500001101000000",
-    "APP6",
-    [],
-    ["T AS", "V", "Z X", "G H"],
-    []
-  ],
-  "APP-6(E) Figure 3-3 land unit": [
-    "16031000001211000000",
-    "APP6",
-    ["AR W", "X Y", "V AD AE", "T", "Z"],
-    ["F AS", "G", "H AF", "M", "J K P"],
-    ["C", "AA", "AW"]
-  ],
-  "APP-6(E) Figure 3-9 land equipment": [
-    "16031500001101000000",
-    "APP6",
-    ["W", "X Y", "V AD AF", "T", "Z"],
-    ["AS", "G", "H AE", "M", "J K L N P"],
-    ["C"]
-  ],
-  "APP-6(E) Figure 3-13 land installation": [
-    "16032000001101000000",
-    "APP6",
-    ["W", "X Y", "AX", "T"],
-    ["AS", "G", "H AE", "M", "J K AT"],
-    []
-  ],
-  "APP-6(E) Figure 4-3 dismounted individual": [
-    "16032700001101000000",
-    "APP6",
-    ["W", "X Y", "V AF", "T", "Z"],
-    ["AS", "G", "H", "M", "J K P"],
-    ["C"]
-  ],
-  "APP-6(E) Figure 5-3 sea surface": [
-    "16033000001201000000",
-    "APP6",
-    ["AQ AR"],
-    ["T AS", "V", "P", "G H", "Y Z"],
-    []
-  ],
-  "APP-6(E) Figure 5-6 sea subsurface": [
-    "16033500001101000000",
-    "APP6",
-    ["AR"],
-    ["T AS", "V", "P X", "G H", "Y Z"],
-    []
-  ],
-  "APP-6(E) Figure 7-2 activities": [
-    "16034000001101000000",
-    "APP6",
-    ["W", "Y", "T"],
-    ["AS", "G", "H", "J"],
-    []
-  ],
-  "APP-6(E) Figure 9-2 cyberspace unit": [
-    "16036000001101000000",
-    "APP6",
-    ["AR W", "Y", "V AD AE", "T", "AY"],
-    ["F AS", "G", "H AF", "M", "K L P"],
-    ["C", "AA", "AW"]
-  ],
   "APP-6(B) Figure 5 land unit": [
     "SFGPUCI--------",
     "APP6",
@@ -320,13 +107,6 @@ const errors = (profile, sidc, options) => {
 };
 const valid = (sidc, options, standard) =>
   new ms.Symbol(sidc, options || {}, { standard: standard }).isValid();
-const yOf = (sidc, standard, options, text) => {
-  const svg = new ms.Symbol(sidc, options, { standard }).asSVG();
-  const match = svg.match(
-    new RegExp('<text[^>]*?y="([^"]+)"[^>]*>' + text + "</text>")
-  );
-  return match ? Number(match[1]) : null;
-};
 const flags = (profile, base, at, pad) =>
   probeOffers(
     profile,
@@ -338,32 +118,6 @@ const flags = (profile, base, at, pad) =>
 export default {
   "Edition modifier placement": placement,
   "Edition selection": {
-    "Table A-1: 14, 15 and 16 are edition E": [
-      ["14", "15", "16"].map(
-        (version) =>
-          new ms.Symbol(version + "031000001211000000", { standard: "2525" })
-            .metadata.edition
-      ),
-      ["E", "E", "E"]
-    ],
-    "the same code is 2525E or APP-6(E) by standard": [
-      [
-        new ms.Symbol("13031000001211000000", { standard: "2525" }).metadata
-          .profile,
-        new ms.Symbol("13031000001211000000", { standard: "APP6" }).metadata
-          .profile
-      ],
-      ["2525e", "app6e"]
-    ],
-    "edition D stays 2525D or APP-6(D) by standard": [
-      [
-        new ms.Symbol("10031000001211000000", { standard: "2525" }).metadata
-          .profile,
-        new ms.Symbol("10031000001211000000", { standard: "APP6" }).metadata
-          .profile
-      ],
-      ["2525d", "app6d"]
-    ],
     "letter SIDCs with 2525 keep no APP-6(B) profile": [
       new ms.Symbol("SFGPUCI--------", { standard: "2525" }).metadata.profile,
       undefined
@@ -385,19 +139,6 @@ export default {
     "APP-6(B) 0213.b joins J K with one space": [
       drawn("SFGPUCI--------", "APP6", {}).right.pop(),
       "J K P"
-    ],
-    "an empty field reserves no separator": [
-      drawn("13031000001211000000", "2525", {
-        evaluationRating: "",
-        combatEffectiveness: "",
-        signatureEquipment: ""
-      }).right.pop(),
-      "P"
-    ],
-    "a whitespace-only field is empty": [
-      drawn("16031500001101000000", "APP6", { type: "  ", platformType: "AD" })
-        .left[2],
-      "AD AF"
     ]
   },
   "The E descriptor is drawn once": {
@@ -469,15 +210,6 @@ export default {
     "APP-6(B) has no engagement bar": [
       errors(app6bProfile, "SFGPUCI--------", { engagementBar: "ENG" }).length,
       1
-    ],
-    "APP-6(B) does not draw an engagement bar": [
-      new ms.Symbol("SFGPUCI--------", {
-        engagementBar: "ENGAGE",
-        standard: "APP6"
-      })
-        .asSVG()
-        .includes("ENGAGE"),
-      false
     ],
     "APP-6(B) installation takes Z (Table I), 2525C does not": [
       errors(app6bProfile, "SFGPIB---------", { speed: "20KTS" }),
@@ -585,21 +317,8 @@ export default {
   },
   "SIDC digits": {
     "2525D unit has no operational condition": [
-      [
-        errors(std2525dProfile, "10031030001211000000").length,
-        new ms.Symbol("10031030001211000000", { standard: "2525" }).metadata
-          .condition
-      ],
-      [1, ""]
-    ],
-    "2525E and APP-6(E) units have one (Figures E-3, 3-3)": [
-      [
-        new ms.Symbol("13031030001211000000", { standard: "2525" }).metadata
-          .condition,
-        new ms.Symbol("16031030001211000000", { standard: "APP6" }).metadata
-          .condition
-      ],
-      ["Damaged", "Damaged"]
+      errors(std2525dProfile, "10031030001211000000").length,
+      1
     ],
     "APP-6(B) has status A and P only": [
       ["P", "A", "C", "D", "X", "F"].map(
@@ -625,24 +344,22 @@ export default {
     ],
     "task force HQ on a merchant ship is valid, with a note": [
       [
-        ["130330060014010500000000000000", "2525"],
-        ["100330060014010500000000000000", "2525"],
-        ["160330060014010500000000000000", "APP6"],
-        ["100330060014010500000000000000", "APP6"]
-      ].map(([sidc, standard]) => {
-        const symbol = new ms.Symbol(sidc, { standard });
+        [std2525eProfile, "130330060014010500000000000000"],
+        [std2525dProfile, "100330060014010500000000000000"],
+        [app6eProfile, "160330060014010500000000000000"],
+        [app6dProfile, "100330060014010500000000000000"]
+      ].map(([profile, sidc]) => {
+        const result = profile.validate(sidc, {});
         return [
-          symbol.isValid(),
-          symbol.metadata.headquarters,
-          symbol.metadata.taskForce,
-          symbol.isValid(true).notes.some((text) => /eight codes/.test(text))
+          result.valid,
+          result.details.notes.some((text) => /eight codes/.test(text))
         ];
       }),
       [
-        [true, true, true, true],
-        [true, true, true, true],
-        [true, true, true, true],
-        [true, true, true, true]
+        [true, true],
+        [true, true],
+        [true, true],
+        [true, true]
       ]
     ],
     "HQ/task force/dummy 8 and 9 stay undefined": [
@@ -738,65 +455,6 @@ export default {
       [true, false]
     ]
   },
-  "Restricted target and no-strike entity": {
-    "contexts 3-8 keep their frame context": [
-      ["3", "4", "5", "6", "7", "8"].map(
-        (digit) =>
-          new ms.Symbol("16" + digit + "31000001211000000", {
-            standard: "APP6"
-          }).metadata.context
-      ),
-      ["Reality", "Reality", "Exercise", "Exercise", "Simulation", "Simulation"]
-    ],
-    "APP-6(E) Figure 1-6 draws the triangle": [
-      new ms.Symbol("16331000001211000000", { standard: "APP6" })
-        .asSVG()
-        .includes(">!</text>"),
-      true
-    ],
-    "APP-6(E) Figure 1-7 draws the circle": [
-      new ms.Symbol("16431000001211000000", { standard: "APP6" })
-        .asSVG()
-        .includes('r="22"'),
-      true
-    ],
-    "2525E gives them no graphic": [
-      new ms.Symbol("13331000001211000000", { standard: "2525" })
-        .asSVG()
-        .includes(">!</text>"),
-      false
-    ],
-    "the mark stays inside the symbol box": [
-      new ms.Symbol("16331000001211000000", { standard: "APP6" }).bbox.y1 <= 18,
-      true
-    ]
-  },
-  "Top of the frame": {
-    "quantity sits above the echelon in APP-6(E)": [
-      yOf("16031000161211000000", "APP6", { quantity: "12" }, "12") <
-        yOf("16031000001211000000", "APP6", { quantity: "12" }, "12"),
-      true
-    ],
-    "AO sits above the quantity in APP-6(E)": [
-      yOf(
-        "16031500001101000000",
-        "APP6",
-        { quantity: "12", engagementBar: "R:ENG-M" },
-        "R:ENG-M"
-      ) <
-        yOf(
-          "16031500001101000000",
-          "APP6",
-          { quantity: "12", engagementBar: "R:ENG-M" },
-          "12"
-        ),
-      true
-    ],
-    "the dismounted quantity sits below the frame": [
-      yOf("16032700001101000000", "APP6", { quantity: "12" }, "12") > 150,
-      true
-    ]
-  },
   "Studio field tables": {
     "the edition's own name replaces the form's": [
       [
@@ -830,26 +488,22 @@ export default {
   "Valid symbols stay valid": {
     "no options": [
       [
-        valid("10031000161211000000", {}, "2525"),
-        valid("13031000161211000000", {}, "2525"),
-        valid("16031000161211000000", {}, "APP6"),
+        std2525dProfile.validate("10031000161211000000", {}).valid,
+        std2525eProfile.validate("13031000161211000000", {}).valid,
+        app6eProfile.validate("16031000161211000000", {}).valid,
         valid("SFGPUCI---F----", {}, "APP6")
       ],
       [true, true, true, true]
     ],
     "a full 2525D unit": [
-      valid(
-        "10031000161211000000",
-        {
-          uniqueDesignation: "1/23 INF",
-          dtg: "03143000ZNOV2026",
-          speed: "220KPH",
-          reinforcedReduced: "(+)",
-          evaluationRating: "A1",
-          combatEffectiveness: "FO"
-        },
-        "2525"
-      ),
+      std2525dProfile.validate("10031000161211000000", {
+        uniqueDesignation: "1/23 INF",
+        dtg: "03143000ZNOV2026",
+        speed: "220KPH",
+        reinforcedReduced: "(+)",
+        evaluationRating: "A1",
+        combatEffectiveness: "FO"
+      }).valid,
       true
     ]
   }

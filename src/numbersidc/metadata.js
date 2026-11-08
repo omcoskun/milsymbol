@@ -1,10 +1,4 @@
 //import { ms } from "../ms.js";
-import { app6dProfile } from "../modifierprofiles/app6d.js";
-import { app6eProfile } from "../modifierprofiles/app6e.js";
-import { applyProfile } from "../modifierprofiles/common.js";
-import { std2525dProfile } from "../modifierprofiles/std2525d.js";
-import { std2525eProfile } from "../modifierprofiles/std2525e.js";
-
 export function metadata(ms, metadata, mapping) {
   const version = this.options.sidc.substr(0, 2);
   //metadata.v13 = version > 13;
@@ -29,13 +23,11 @@ export function metadata(ms, metadata, mapping) {
   if (version == "10" || version == "11" || version == "12") {
     metadata.edition = "D";
   }
-  // Table A-1 (2525E PDF 76/59, APP-6(E) PDF 747/713): 13 2525E, 14 APP-06(E)(1),
-  // 15 2525E(1), 16 APP-06(E)(2).
-  if (["13", "14", "15", "16"].indexOf(version) > -1) {
+  if (version == "13" || version == "14") {
     metadata.edition = "E";
   }
 
-  if (metadata.edition == "E" && standardIdentity2 == 5) {
+  if (version == 13 && standardIdentity2 == 5) {
     metadata.suspect = true;
   }
 
@@ -64,25 +56,14 @@ export function metadata(ms, metadata, mapping) {
   };
 
   const functionid = (metadata.functionid = this.options.sidc.substr(10, 10));
-  // Only edition E uses positions 21–22 as common modifier identifiers.
-  // In edition D, positions 21–23 identify the national symbology originator.
   metadata._modifier1 =
-    (metadata.edition === "E" ? this.options.sidc.substr(20, 1) || "0" : "0") +
+    (this.options.sidc.substr(20, 1) || "0") +
     (functionid.substr(6, 2) || "00");
   metadata._modifier2 =
-    (metadata.edition === "E" ? this.options.sidc.substr(21, 1) || "0" : "0") +
+    (this.options.sidc.substr(21, 1) || "0") +
     (functionid.substr(8, 2) || "00");
 
-  // Edition E, Table A-2 (APP-6(E) PDF 748/714, 2525E PDF 76/59): digits 3-8 are
-  // the three contexts of a restricted target (3, 5, 7) or no-strike entity (4, 6, 8).
-  const contextDigit = parseInt(this.options.sidc.substr(2, 1));
-  const markedContext = metadata.edition === "E" && contextDigit > 2;
-  metadata.context =
-    mapping.context[
-      markedContext ? [0, 0, 1, 1, 2, 2][contextDigit - 3] : contextDigit
-    ];
-  metadata.restrictedTarget = markedContext && contextDigit % 2 === 1;
-  metadata.noStrike = markedContext && contextDigit % 2 === 0;
+  metadata.context = mapping.context[parseInt(this.options.sidc.substr(2, 1))];
   metadata.affiliation = affiliationMapping[standardIdentity2];
   metadata.dimension = dimensionMapping[symbolSet] || "";
 
@@ -137,26 +118,17 @@ export function metadata(ms, metadata, mapping) {
   //Should it have a Condition Bar
   if (status == "2" || status == "3" || status == "4" || status == "5")
     metadata.condition = mapping.status[parseInt(status)];
-  // APP-6(D) Tables 1-3/1-4 (PDF 35/1-11): operational condition is N/A for Land Unit.
-  if (metadata.edition === "D" && !metadata.STD2525 && symbolSet == "10")
-    metadata.condition = "";
 
   //First save the dimensionType and affiliationType before we modifies it...
   metadata.baseDimension = metadata.dimension;
   metadata.baseAffilation = metadata.affiliation;
 
-  // Table A-II contexts 5/6 are also Exercise. Resolve the context before
-  // choosing Joker/Faker so restricted/no-strike entities retain their identity.
-  if (standardIdentity2 == "5" && metadata.context === "Exercise")
+  //Joker and faker should have the shape of friendly
+  if (standardIdentity2 == "5" && standardIdentity1 == "1")
     metadata.joker = true;
-  if (standardIdentity2 == "6" && metadata.context === "Exercise")
+  if (standardIdentity2 == "6" && standardIdentity1 == "1")
     metadata.faker = true;
-  // APP-6(D) Table A-3 (PDF 719/A-5): identities 5 and 6 belong to the Hostile group,
-  // so Joker/Faker keep the hostile frame (no Friend-shaped 2525 frame).
-  if (
-    (metadata.joker || metadata.faker) &&
-    !(metadata.edition === "D" && !metadata.STD2525)
-  ) {
+  if (metadata.joker || metadata.faker) {
     metadata.affiliation = mapping.affiliation[1];
   }
 
@@ -264,42 +236,6 @@ export function metadata(ms, metadata, mapping) {
   }
   if (echelonMobility >= 70 && echelonMobility < 80) {
     metadata.leadership = mapping.echelonMobility[echelonMobility];
-  }
-
-  // The 2525C letter profile never applies to numeric SIDCs.
-  metadata.std2525c = false;
-  // APP-6D: edition D numeric SIDCs rendered with the APP6 standard.
-  if (metadata.edition === "D" && !metadata.STD2525) {
-    metadata.app6d = true;
-    applyProfile(app6dProfile, this.options.sidc, this.options, metadata);
-  }
-  // MIL-STD-2525D, MIL-STD-2525E and APP-6(E): the amplifier profile of the
-  // edition. A class the edition gives no AL draws no condition bar.
-  const editionProfile =
-    metadata.edition === "D" && metadata.STD2525
-      ? std2525dProfile
-      : metadata.edition === "E"
-        ? metadata.STD2525
-          ? std2525eProfile
-          : app6eProfile
-        : null;
-  if (editionProfile && !metadata.app6a) {
-    applyProfile(editionProfile, this.options.sidc, this.options, metadata);
-    if (!editionProfile.showsCondition(this.options.sidc))
-      metadata.condition = "";
-  }
-
-  // Rendering is permissive, but an unknown version must never bypass the
-  // edition checks simply because no modifier profile could be selected.
-  if (!["10", "11", "12", "13", "14", "15", "16"].includes(version)) {
-    metadata.validation = {
-      valid: false,
-      details: {
-        sidcErrors: [
-          `Position 1–2: version ${version} is not supported. Supported versions are 10–16.`
-        ]
-      }
-    };
   }
 
   return metadata;

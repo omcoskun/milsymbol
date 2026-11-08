@@ -1,6 +1,5 @@
 //Affiliation and dimension addons to base geometries ####################################
 import strWidth from "./string-width.js";
-import { layoutHasText } from "../modifierprofiles/common.js";
 export default function affliationdimension(ms) {
   const drawArray1 = [];
   const drawArray2 = [];
@@ -83,14 +82,7 @@ export default function affliationdimension(ms) {
     ) {
       spacing = -10;
     }
-    // 2525C, APP-6(B): when the E/F text row is drawn, the descriptor is its
-    // first token.
-    const layout = this.metadata.textLayout;
-    const descriptorInText =
-      (this.metadata.std2525c || this.metadata.app6b) &&
-      this.style.infoFields &&
-      layoutHasText(layout, this.options);
-    if (this.metadata.context == "Exercise" && !descriptorInText) {
+    if (this.metadata.context == "Exercise") {
       if (!(this.metadata.joker || this.metadata.faker)) {
         drawArray2.push({
           type: "text",
@@ -163,54 +155,6 @@ export default function affliationdimension(ms) {
       bbox = new ms.BBox({ x2: bbox.x2 + spacing + 22, y1: 40 - 25 });
     }
   }
-  // APP-6(E) 1.2.5, Figures 1-6 and 1-7 (PDF 92/58): the restricted target and
-  // no-strike marks sit on the top right of the frame. 2525E has the context
-  // codes and no graphic for them.
-  const marked =
-    !this.metadata.STD2525 &&
-    (this.metadata.restrictedTarget || this.metadata.noStrike);
-  if (marked) {
-    const mono = this.style.monoColor;
-    const stroke = mono || "rgb(0, 0, 0)";
-    const fill = mono ? false : "rgb(255, 255, 0)";
-    if (this.metadata.restrictedTarget) {
-      drawArray2.push({
-        type: "path",
-        d: "M150,21 L175,66 L125,66 z",
-        fill: fill,
-        stroke: stroke,
-        strokewidth: 4
-      });
-      drawArray2.push({
-        type: "text",
-        text: "!",
-        x: 150,
-        y: 62,
-        fill: stroke,
-        fontfamily: this.style.fontfamily,
-        fontsize: 36,
-        fontweight: "bold",
-        textanchor: "middle"
-      });
-    } else {
-      drawArray2.push({
-        type: "circle",
-        cx: 150,
-        cy: 45,
-        r: 22,
-        fill: fill,
-        stroke: stroke,
-        strokewidth: 6
-      });
-      drawArray2.push({
-        type: "path",
-        d: "M134.4,29.4 L165.6,60.6",
-        fill: false,
-        stroke: stroke,
-        strokewidth: 6
-      });
-    }
-  }
   //outline
   if (this.style.outlineWidth > 0)
     drawArray1.push(
@@ -223,11 +167,5 @@ export default function affliationdimension(ms) {
           : this.style.outlineColor
       )
     );
-  const result = markerBbox || bbox;
-  if (marked) {
-    const merged = new ms.BBox(result);
-    merged.merge({ x1: 122, y1: 18, x2: 178, y2: 70 });
-    return { pre: drawArray1, post: drawArray2, bbox: merged };
-  }
-  return { pre: drawArray1, post: drawArray2, bbox: result };
+  return { pre: drawArray1, post: drawArray2, bbox: markerBbox || bbox };
 }

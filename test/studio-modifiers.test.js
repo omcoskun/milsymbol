@@ -1,11 +1,10 @@
-import { ms, app6a, app6b, std2525d } from "../index.mjs";
+import { ms, app6a, app6b } from "../index.mjs";
 import { collectTextModifiers } from "../studio/modifier-fields.js";
 import { getApp6aFields } from "../src/lettersidc/metadata.js";
 
 ms.reset();
 ms.addIcons(app6a);
 ms.addIcons(app6b);
-ms.addIcons(std2525d);
 
 const values = {
   quantity: "12",
@@ -19,7 +18,6 @@ const values = {
   unknownOption: "IGNORE"
 };
 const options = collectTextModifiers(values);
-const modernSvg = new ms.Symbol("10031000001211000000", options).asSVG();
 const legacySvg = new ms.Symbol("SFGPUCI--------", options).asSVG();
 const app6aSidc = "SFGPUCI--------";
 const app6aOptions = collectTextModifiers(
@@ -33,26 +31,10 @@ const app6aSymbol = new ms.Symbol(app6aSidc, {
 
 export default {
   "Studio modifier controls": {
-    "new amplifiers reach numeric SVG exports": [
-      ["(+)", "READY", "A1 85%", "1500FT", "30KM/H", "NATO"].every(
-        (value) => modernSvg.includes(value)
-      ),
-      true
-    ],
     "new amplifiers reach letter SVG exports": [
       ["12", "(+)", "READY", "A1/85%", "1500FT", "30KM/H", "NATO"].every(
         (value) => legacySvg.includes(value)
       ),
-      true
-    ],
-    "country alone renders on equipment without another text amplifier": [
-      new ms.Symbol(
-        // 2525D gives equipment no AS (Table VII, Figure D-5); 2525E does.
-        "13031500001101000000",
-        collectTextModifiers({ country: "TUR" })
-      )
-        .asSVG()
-        .includes(">TUR</text>"),
       true
     ],
     "APP-6A keeps only publication-applicable fields": [

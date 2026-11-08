@@ -524,21 +524,9 @@ result["X Y share a row with one space"] = [
   ),
   ["100 FT AGL 12.5N"]
 ];
-result["exercise X drawn once, with F"] = [
-  texts(sym("SDGPUCI-----", { reinforcedReduced: "(+)" })).filter(
-    (t) => t.indexOf("X") > -1
-  ),
-  ["X (+)"]
-];
 result["exercise X drawn once, without F"] = [
   texts(sym("SDGPUCI-----")).filter((t) => t === "X"),
   ["X"]
-];
-result["joker J drawn once"] = [
-  texts(sym("SJGPUCI-----", { reinforcedReduced: "(-)" })).filter(
-    (t) => t.indexOf("J") > -1
-  ),
-  ["J (-)"]
 ];
 result["inapplicable text is not drawn"] = [
   texts(

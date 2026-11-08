@@ -1,14 +1,6 @@
 // A text value that breaks an edition's format warns and leaves the symbol valid;
 // a wrong code stays an error. The Studio's own examples must not warn.
-import {
-  ms,
-  app6a,
-  app6b,
-  std2525c,
-  app6d,
-  std2525d,
-  std2525e
-} from "../index.mjs";
+import { ms, app6a, app6b, std2525c } from "../index.mjs";
 import { app6aProfile } from "../src/modifierprofiles/app6a.js";
 import { app6bProfile } from "../src/modifierprofiles/app6b.js";
 import { app6dProfile } from "../src/modifierprofiles/app6d.js";
@@ -20,9 +12,7 @@ import { fieldGuide } from "../studio/field-guide.js";
 import { textModifiers } from "../studio/modifier-fields.js";
 
 ms.reset();
-[app6a, app6b, std2525c, app6d, std2525d, std2525e].forEach((set) =>
-  ms.addIcons(set)
-);
+[app6a, app6b, std2525c].forEach((set) => ms.addIcons(set));
 
 // [edition, standard, profile, land unit SIDC, a code wrong for that edition]
 const editions = [
@@ -61,7 +51,30 @@ const editions = [
 
 const bad = { evaluationRating: "G7", uniqueDesignation: "X".repeat(40) };
 const result = {};
-for (const [id, standard, , sidc, wrong] of editions) {
+// APP-6(D) sets no length for T.
+const warned = (id) =>
+  id === "app6d"
+    ? ["evaluationRating"]
+    : ["evaluationRating", "uniqueDesignation"];
+for (const [id, standard, profile, sidc, wrong] of editions) {
+  if (/^\d/.test(sidc)) {
+    // The library draws number SIDCs as upstream; the profile checks them.
+    const checked = profile.validate(sidc, { ...bad });
+    result[`${id}: broken text leaves the code valid`] = [checked.valid, true];
+    result[`${id}: it warns by field`] = [
+      checked.details.fieldWarnings.map((item) => item.key).sort(),
+      warned(id)
+    ];
+    result[`${id}: no warning means no error list entry`] = [
+      checked.details.modifierErrors,
+      []
+    ];
+    result[`${id}: a wrong code is still invalid`] = [
+      profile.validate(wrong, {}).valid,
+      false
+    ];
+    continue;
+  }
   const symbol = new ms.Symbol(sidc, { ...bad, standard });
   const details = symbol.isValid(true);
   result[`${id}: broken text leaves the symbol valid`] = [
@@ -74,10 +87,7 @@ for (const [id, standard, , sidc, wrong] of editions) {
   ];
   result[`${id}: it warns by field`] = [
     details.fieldWarnings.map((item) => item.key).sort(),
-    // APP-6(D) sets no length for T.
-    id === "app6d"
-      ? ["evaluationRating"]
-      : ["evaluationRating", "uniqueDesignation"]
+    warned(id)
   ];
   result[`${id}: no warning means no error list entry`] = [
     details.modifierErrors,

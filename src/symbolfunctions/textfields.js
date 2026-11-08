@@ -1,10 +1,6 @@
 //Text Fields ############################################################################
 import strWidth from "./string-width.js";
-import {
-  joinFields,
-  layoutHasText,
-  layoutKeys
-} from "../modifierprofiles/common.js";
+import { joinFields, layoutKeys } from "../modifierprofiles/common.js";
 export default function textfieldsMod(ms) {
   const drawArray1 = [];
   const drawArray2 = [];
@@ -222,7 +218,7 @@ export default function textfieldsMod(ms) {
     }
   }
 
-  // Edition profile layout (every edition with a profile); replaces the legacy rows.
+  // APP-6A profile layout (metadata.textLayout); replaces the legacy rows.
   const layout = this.metadata.textLayout;
   const allowed = (position, key) =>
     !layout || (layout[position] || []).includes(key);
@@ -252,7 +248,6 @@ export default function textfieldsMod(ms) {
     this.options.location ||
     this.options.speed ||
     this.options.specialHeadquarters ||
-    this.options.country ||
     this.options.platformType ||
     this.options.equipmentTeardownTime ||
     this.options.commonIdentifier ||
@@ -260,9 +255,7 @@ export default function textfieldsMod(ms) {
     this.options.headquartersElement ||
     this.options.installationComposition ||
     this.options.guardedUnit ||
-    this.options.specialDesignator ||
-    this.options.installationCapacity ||
-    this.options.networkIdentifier;
+    this.options.specialDesignator;
   if (this.style.infoFields && textFields) {
     if (
       this.options.specialHeadquarters &&
@@ -275,18 +268,12 @@ export default function textfieldsMod(ms) {
       !this.metadata.dismounted &&
       allowed("top", "quantity")
     ) {
-      // APP-6(D): C shares the B/C/D cell above the frame (Figure 3-3 PDF
-      // 84/3-4); modifier.js sets quantityTop above the task force and echelon.
-      const quantityTop =
-        this.metadata.quantityTop !== undefined
-          ? this.metadata.quantityTop
-          : bbox.y1;
       //geometry
       drawArray2.push({
         type: "text",
         text: this.options.quantity,
         x: 100,
-        y: quantityTop - 10,
+        y: bbox.y1 - 10,
         textanchor: "middle",
         fontsize: fontSize,
         fontfamily: fontFamily,
@@ -294,23 +281,7 @@ export default function textfieldsMod(ms) {
         stroke: false,
         cssClass: cssClass
       });
-      gbbox.y1 = quantityTop - 10 - fontSize;
-    }
-    // Below the frame (APP-6(E) Figure 4-3): a dismounted individual's quantity.
-    if (this.options.quantity && layout && allowed("bottom", "quantity")) {
-      drawArray2.push({
-        type: "text",
-        text: this.options.quantity,
-        x: 100,
-        y: bbox.y2 + fontSize,
-        textanchor: "middle",
-        fontsize: fontSize,
-        fontfamily: fontFamily,
-        fill: fontColor,
-        stroke: false,
-        cssClass: cssClass
-      });
-      gbbox.y2 = bbox.y2 + fontSize;
+      gbbox.y1 = bbox.y1 - 10 - fontSize;
     }
     if (
       this.options.headquartersElement &&
@@ -343,13 +314,11 @@ export default function textfieldsMod(ms) {
     }
 
     const gStrings = {
-      L0: "",
       L1: "",
       L2: "",
       L3: "",
       L4: "",
       L5: "",
-      R0: "",
       R1: "",
       R2: "",
       R3: "",
@@ -585,19 +554,14 @@ export default function textfieldsMod(ms) {
     }
 
     if (layout) {
-      // A profile may supply derived values (2525C frame descriptor X/J/K).
-      const layoutOptions =
-        layout.derived && layoutHasText(layout, values)
-          ? Object.assign({}, values, layout.derived)
-          : values;
-      for (let row = 0; row <= 5; row++) {
+      for (let row = 1; row <= 5; row++) {
         gStrings["L" + row] = joinFields(
-          layoutOptions,
+          values,
           (layout.left || [])[row],
           layout.separator
         );
         gStrings["R" + row] = joinFields(
-          layoutOptions,
+          values,
           (layout.right || [])[row],
           layout.separator
         );
@@ -622,7 +586,6 @@ export default function textfieldsMod(ms) {
               this.metadata.baseGeometry.bbox.width()) /
               2
           : 0,
-        strWidth(gStrings.L0, fontSize, spaceTextIcon),
         strWidth(gStrings.L1, fontSize, spaceTextIcon),
         strWidth(gStrings.L2, fontSize, spaceTextIcon),
         strWidth(gStrings.L3, fontSize, spaceTextIcon),
@@ -648,7 +611,6 @@ export default function textfieldsMod(ms) {
               this.metadata.baseGeometry.bbox.width()) /
               2
           : 0,
-        strWidth(gStrings.R0, fontSize, spaceTextIcon + stack),
         strWidth(gStrings.R1, fontSize, spaceTextIcon + stack),
         strWidth(gStrings.R2, fontSize, spaceTextIcon + stack),
         strWidth(gStrings.R3, fontSize, spaceTextIcon + stack),
@@ -656,10 +618,6 @@ export default function textfieldsMod(ms) {
         strWidth(gStrings.R5, fontSize, spaceTextIcon + stack + flag * 1.5)
       );
 
-    //Extra space above for field 0
-    if (gStrings.L0 || gStrings.R0) {
-      gbbox.y1 = Math.min(gbbox.y1, 100 - 3.5 * fontSize);
-    }
     //Extra space above for field 1
     if (gStrings.L1 || gStrings.R1) {
       gbbox.y1 = Math.min(gbbox.y1, 100 - 2.5 * fontSize);
@@ -681,16 +639,6 @@ export default function textfieldsMod(ms) {
     if (this.style.infoBackground) {
       let leftBox = { x1: 100, y1: 1000, y2: 0 };
       let rightBox = { x2: 100, y1: 1000, y2: 0 };
-      if (gStrings.L0)
-        leftBox = {
-          x1: Math.min(
-            leftBox.x1,
-            bbox.x1 - strWidth(gStrings.L0, fontSize, spaceTextIcon)
-          ),
-          x2: bbox.x1 - spaceTextIcon / 2,
-          y1: Math.min(leftBox.y1, 100 - 3.5 * fontSize),
-          y2: Math.max(leftBox.y2, 100 - 2.5 * fontSize + spaceTextIcon / 2)
-        };
       if (gStrings.L1)
         leftBox = {
           x1: Math.min(
@@ -771,16 +719,6 @@ export default function textfieldsMod(ms) {
           stroke: infoBackgroundFrame || false
         });
       }
-      if (gStrings.R0)
-        rightBox = {
-          x1: bbox.x2 + spaceTextIcon / 2,
-          x2: Math.max(
-            rightBox.x2,
-            bbox.x2 + strWidth(gStrings.R0, fontSize, spaceTextIcon)
-          ),
-          y1: Math.min(rightBox.y1, 100 - 3.5 * fontSize),
-          y2: Math.max(rightBox.y2, 100 - 2.5 * fontSize + spaceTextIcon / 2)
-        };
       if (gStrings.R1)
         rightBox = {
           x1: bbox.x2 + spaceTextIcon / 2,
@@ -863,19 +801,6 @@ export default function textfieldsMod(ms) {
       }
     }
     //geometries
-    if (gStrings.L0)
-      drawArray2.push({
-        type: "text",
-        text: gStrings.L0,
-        x: bbox.x1 - spaceTextIcon,
-        y: 100 - 2.5 * fontSize,
-        textanchor: "end",
-        fontsize: fontSize,
-        fontfamily: fontFamily,
-        fill: fontColor,
-        stroke: false,
-        cssClass: cssClass
-      });
     if (gStrings.L1)
       drawArray2.push({
         type: "text",
@@ -943,19 +868,6 @@ export default function textfieldsMod(ms) {
       });
 
     //geometries
-    if (gStrings.R0)
-      drawArray2.push({
-        type: "text",
-        text: gStrings.R0,
-        x: bbox.x2 + spaceTextIcon + stack,
-        y: 100 - 2.5 * fontSize,
-        textanchor: "start",
-        fontsize: fontSize,
-        fontfamily: fontFamily,
-        fill: fontColor,
-        stroke: false,
-        cssClass: cssClass
-      });
     if (gStrings.R1)
       drawArray2.push({
         type: "text",
