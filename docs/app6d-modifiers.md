@@ -1,6 +1,13 @@
 # APP-6(D) Edition D Version 1: modifier and identity profile
 
-Source: `APP-6D_EDD_V1_E.pdf` (922 physical pages). Citations are "PDF physical page / printed page". The profile is active when `metadata.app6d` is true: a numeric SIDC with version 10-12 rendered with `ms.setStandard("APP6")` (not 2525). Rendering of 2525D/E and APP-6E (version 13-14) is unchanged. Code: `src/modifierprofiles/app6d.js`, `src/modifierprofiles/app6d-sectors.js`; tests: `test/app6d-modifiers.test.js`.
+> **Status (2026-11-08):** the library now draws APP-6(D) exactly as upstream
+> milsymbol 3.0.5. This profile lives in `studio/profiles/app6d.js` and only checks symbols in the
+> Studio, through `studio/edition-check.js`. Where this page says what the renderer
+> draws, it describes the fork before that date. `docs/upstream-parity-removals.md`
+> lists those changes and how to restore them from the tag
+> `archive/before-upstream-parity`.
+
+Source: `APP-6D_EDD_V1_E.pdf` (922 physical pages). Citations are "PDF physical page / printed page". The Studio applies the profile to a numeric SIDC with version 10-12 in its APP-6(D) view (standard `APP6`, not 2525). Code: `studio/profiles/app6d.js`, `studio/profiles/app6d-sectors.js`; tests: `test/app6d-modifiers.test.js`.
 
 Scope: symbol sets 01, 02, 05, 10, 15, 20, 30, 35, 36 and 00 Unknown (fallback). Sets 11 (civilian organization) and 27 (dismounted individual) are classified and deliberately not profiled; 25, 40, METOC, 50-54, 60-64 and 06 are untouched.
 

@@ -1,19 +1,26 @@
 # MIL-STD-2525C scheme S modifier profile
 
+> **Status (2026-11-08):** the library now draws MIL-STD-2525C exactly as upstream
+> milsymbol 3.0.5. This profile lives in `studio/profiles/std2525c.js` and only checks symbols in the
+> Studio, through `studio/edition-check.js`. Where this page says what the renderer
+> draws, it describes the fork before that date. `docs/upstream-parity-removals.md`
+> lists those changes and how to restore them from the tag
+> `archive/before-upstream-parity`.
+
 Source: MIL-STD-2525C, 17 November 2008. Page citations give the physical PDF
 page first and the printed page second (printed = PDF - 6). Code:
-`src/modifierprofiles/std2525c.js`, wired in `src/lettersidc/metadata.js`.
+`studio/profiles/std2525c.js`, run by `studio/edition-check.js`.
 
 ## Scope and activation
 
-- The profile is active only for letter SIDCs when the edition is selected with
-  `ms.setStandard("2525C")` or the style `standard: "2525C"`. `ms.setStandard("2525")`
-  (the 2525B/C mix) keeps its rendering unchanged.
+- The Studio applies the profile to letter SIDCs in its MIL-STD-2525C view. The
+  library has no 2525C mode: that view renders with `ms.setStandard("2525")` (the
+  2525B/C mix), exactly as upstream.
 - Scheme S only. Every other first character (G, I, O, E, W) gets a neutral
   result: no field restriction, always valid, no layout. S-scheme rules are not
   applied to them.
 - `validate()` returns `details.modifierErrors` (source-backed violations, which
-  make `isValid()` false) and `details.notes` (source tensions and product
+  make the Studio check false) and `details.notes` (source tensions and product
   policy, which do not).
 
 ## Symbol class
@@ -82,7 +89,7 @@ no-break and ideographic spaces) is empty: it creates no row, reserves no
 separator, and is not "present" for validation. Non-blank text is not trimmed.
 This is product policy shared by all three edition profiles and implemented in
 `src/modifierprofiles/common.js` (`isBlank`, `joinFields`, `clearBlankText`,
-applied by `applyProfile` to the symbol's own options). The source does not
+applied by the Studio check to a copy of the symbol's options). The source does not
 define whitespace handling.
 
 Display length is counted in Unicode code points (a modern-display choice; the

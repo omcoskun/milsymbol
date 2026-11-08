@@ -1,8 +1,10 @@
 # Amplifier profiles: APP-6(B), MIL-STD-2525D, MIL-STD-2525E, APP-6(E)
 
-These four editions now have modifier profiles like APP-6A, MIL-STD-2525C and APP-6(D). A profile says which fields a symbol class has, how long they may be, which values they take and where the renderer places them.
+These four editions have modifier profiles, as MIL-STD-2525C and APP-6(D) do. A profile says which fields a symbol class has, how long they may be, which values they take and where each field belongs.
 
-Code: `src/modifierprofiles/app6b.js`, `std2525d.js`, `std2525e.js`, `app6e.js`, with the shared builder `fieldtable.js`. Tests: `test/edition-modifiers.test.js`. Those tests render each class and compare the drawn rows with the rows copied from each figure.
+Since 2026-11-08 the library draws these editions exactly as upstream milsymbol 3.0.5, for example with `/` between fields in one cell, and does not apply the profiles. The Studio uses them to check a symbol: `studio/edition-check.js` adds the profile's verdict to `isValid()`. Only APP-6A has a profile in the library. `docs/upstream-parity-removals.md` lists what left the library and how to restore it from the tag `archive/before-upstream-parity`.
+
+Code: `studio/profiles/app6b.js`, `std2525d.js`, `std2525e.js`, `app6e.js`, with the shared builder `fieldtable.js`. Tests: `test/edition-modifiers.test.js` checks each class's fields, rules and `textLayout` rows against the rows copied from each figure.
 
 Citations are "PDF physical page / printed page".
 
@@ -13,13 +15,13 @@ Citations are "PDF physical page / printed page".
 | MIL-STD-2525E Change 1 | `MIL-STD-2525E-Change1.pdf` | numeric version 13-16, standard `2525` |
 | APP-06 Edition E Version 2 | `APP-06 EDE V2 E.pdf` | numeric version 13-16, standard `APP6` |
 
-Sets without a figure keep the old rows and every field: 00 Unknown, 25 Control Measures, 45-47 METOC and, in edition E, 50-54 SIGINT. APP-6(D) (version 10-12, standard `APP6`) keeps its own profile.
+Sets without a figure keep upstream's rows and every field: 00 Unknown, 25 Control Measures, 45-47 METOC and, in edition E, 50-54 SIGINT. APP-6(D) (version 10-12, standard `APP6`) keeps its own profile.
 
-## What was wrong
+## What the profiles change
 
-The old renderer had one row plan for all numeric land symbols and joined shared fields with `/`.
+The upstream renderer has one row plan for all numeric land symbols and joins shared fields with `/`. Until 2026-11-08 the fork's renderer also drew the changes below. Now they hold only in the profiles: the Studio checks fields and codes against them, and the library draws upstream's rows, frames and bars.
 
-| Finding | Editions | Now |
+| Finding | Editions | Profile |
 |---|---|---|
 | Fields in one cell were joined with `/` | all four | One space. APP-6(B) 0213.b PDF 38/2-16 requires it. The others say only "the most critical amplifier" should be used and give no rule, so they follow 2525C and APP-6(D) |
 | AE and AF were swapped on equipment | 2525D, 2525E | V/AD/AE on the left, H/AF on the right (Figures D-5, E-4). APP-6(E) really has the reverse, V/AD/AF and H/AE (Figure 3-9) |
@@ -36,13 +38,13 @@ The old renderer had one row plan for all numeric land symbols and joined shared
 | An engagement bar and speed leader were accepted | APP-6(B) | Table I has no AO or AJ |
 | Versions 14, 15 and 16 were unknown | edition E | Table A-1 PDF 76/59 and PDF 747/713. 14 is APP-06(E)(1), 15 is 2525E(1), 16 is APP-06(E)(2) |
 | The Studio wrote version 13 for APP-6E | APP-6(E) | 16. Version 13 is MIL-STD-2525E |
-| Contexts 3-8 had no meaning | edition E | Restricted target and no-strike contexts keep their frame context. APP-6(E) draws the marks of Figures 1-6 and 1-7 PDF 92/58 |
-| AT and AY had no option | APP-6(E) | New options `installationCapacity` and `networkIdentifier` |
-| E descriptor drew twice when other text was set | APP-6(B), 2525C | Once: in the E row when there is other text, by the frame when there is none |
+| Contexts 3-8 had no meaning | edition E | Restricted target and no-strike contexts keep their frame context. The marks of APP-6(E) Figures 1-6 and 1-7 PDF 92/58 are no longer drawn |
+| AT and AY had no option | APP-6(E) | Profile fields `installationCapacity` and `networkIdentifier`. The library does not draw them |
+| E descriptor drew twice when other text was set | APP-6(B), 2525C | Once in the profile rows: in the E row when there is other text, by the frame when there is none. The library draws it as upstream does |
 
 ## Field positions
 
-Rows are top to bottom. A `/` in the source is a cell shared by several fields.
+Rows are top to bottom. A `/` in the source is a cell shared by several fields. These are the profiles' `textLayout` rows; the library does not draw them for these editions.
 
 ### MIL-STD-2525D Change 1
 
@@ -102,17 +104,18 @@ E is the Joker or Faker letter, from SIDC position 2. Unlike 2525C, Z applies to
 
 ## Errors and warnings
 
-Numeric SIDCs with versions 10–16 select an edition profile. Unsupported versions
-remain renderable but return `isValid() === false` with a position 1–2 error in
-`details.sidcErrors`; the absence of a profile never implies validity.
+Numeric SIDCs with versions 10–16 select an edition profile. The library draws
+any other version as upstream does and `isValid()` stays true. The Studio check
+(`studio/edition-check.js`) makes such a symbol invalid, with a position 1–2 error
+in `details.sidcErrors`, so the absence of a profile never implies validity.
 
-Edition E contexts 5 and 6 retain the Exercise Joker/Faker identity and descriptor,
-alongside their restricted-target or no-strike markers. APP-6(E)'s AS field accepts
+In the profiles, edition E contexts 5 and 6 are exercise contexts with a Joker or
+Faker identity. The library resolves their identity as upstream does. APP-6(E)'s AS field accepts
 exactly three alphanumeric characters (Table 1-5 PDF 87/53); the geographical entity
 code list is outside that publication's scope. This differs from the three-letter
 country rule used by the MIL profiles.
 
-`details.modifierErrors` is for a wrong SIDC and for a field the symbol does not take. Those make `isValid()` false, and the Studio shows Check code / modifiers.
+`details.modifierErrors` is for a wrong SIDC and for a field the symbol does not take. Those make the Studio check false, and the Studio shows Check code / modifiers. For these editions `isValid()` alone does not see them.
 
 `details.fieldWarnings` lists text values that break a length, list or format rule, as `{ key, message }`. The text is still drawn and the symbol stays valid, and the Studio shows the message under the field. All seven editions work this way. A rule that ties text to the code stays an error: APP-6D F above division, 2525C W O/O without status A.
 
@@ -152,9 +155,9 @@ country rule used by the MIL profiles.
 ## Limits
 
 - Icons and sector modifiers were not audited image by image. Only amplifier placement, fields and SIDC digits were checked.
-- Text rows use the renderer's row spacing, so a column with fewer rows than the figure keeps its order, not the figure's exact height.
+- The library draws these editions with upstream's rows, not the profile rows above.
 - S2/BA offset lines, AH, AI and AK need map data the library does not take. The Studio lists them as gaps.
-- Set 64 has no frame or icon in the library. The profile places its fields, but the symbol does not render until that work is done.
+- Set 64 has no frame or icon in the library. The profile lists its fields, but the symbol does not render until that work is done.
 - SIGINT placement in 2525D is product policy: no figure exists.
 - 2525E set 60 lists AE and AP in Table K-II with no cell, so they are not offered.
 - The studio catalogue for APP-6E is still the compatibility catalogue.

@@ -61,6 +61,17 @@ a pull request rather than keeping it in the fork.
 | APP-6B `G-C-OXAH` uses the ASW rotary wing icon | The tactical point draws nothing | `172ac6d` |
 | Named ESM exports in `index.js`, `types` first in `exports`, default-only UMD entry | `import { Symbol } from "milsymbol"` fails although `index.d.ts` declares it | `4cb165a` |
 
+## Checks the Studio now does itself
+
+`studio/edition-check.js` covers two of the removed fixes for the Studio's
+badge only; plain milsymbol keeps upstream's verdict.
+
+- A numeric version other than 10–16 is not valid, with the old position 1–2
+  message in `details.sidcErrors`.
+- For edition D (versions 10–12) the first 20 digits decide the library
+  verdict, so an originator country at 21–23 does not make the symbol invalid.
+  Upstream still draws a modifier when 21–22 match one (156 China → 15).
+
 ## Restored refactors
 
 Output is the same as upstream, but the file differs from upstream. Restoring

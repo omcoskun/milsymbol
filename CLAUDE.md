@@ -49,9 +49,18 @@ Style: Prettier with `trailingComma: "none"`; ESLint requires semicolons and `pr
 
 **Standard selection**: `ms.setStandard("2525" | "APP6" | "APP6A")` sets `ms._STD2525` and `ms._standardEdition`. A per-symbol `style.standard` override takes precedence. 2525 vs APP6 mostly changes frame and icon variants through the `STD2525` flag passed to icon functions.
 
-**Edition profiles**: `src/modifierprofiles/` holds one profile per edition: `app6a.js`, `app6b.js`, `std2525c.js`, `app6d.js`, `std2525d.js`, `std2525e.js`, `app6e.js`. `fieldtable.js` builds the last three from a table of classes written in field codes. A profile gives `fields`, `validate`, `textLayout` and `unavailableReason` for a SIDC, and `applyProfile` stores the result on `metadata`. `textfields.js` draws `metadata.textLayout` in place of the legacy rows, so a field outside the layout is not drawn. Numeric version 10-12 is edition D and 13-16 is edition E; `STD2525` picks 2525 or APP-6 within an edition. A letter SIDC with standard `APP6` is APP-6(B), scheme S only. Text values that break a length, list or format rule go in `details.fieldWarnings` and leave the symbol valid; `details.modifierErrors` is for a wrong code or a field the symbol does not take. `docs/edition-modifiers.md` has the positions and source decisions; `test/edition-modifiers.test.js` compares drawn rows with the figures.
+**Edition profiles**: a profile gives `fields`, `validate`, `textLayout` and `unavailableReason` for a SIDC.
+- The library applies only the APP-6A profile: `src/modifierprofiles/app6a.js`, with shared helpers in `common.js`. `applyProfile` stores its result on `metadata`, and `textfields.js` draws `metadata.textLayout` in place of the legacy rows, so a field outside the APP-6A layout is not drawn.
+- Every other edition is drawn exactly as upstream milsymbol 3.0.5. The Studio holds their profiles in `studio/profiles/`: `app6b.js`, `std2525c.js`, `app6d.js` (with `app6d-sectors.js`), `std2525d.js`, `std2525e.js` and `app6e.js`; `fieldtable.js` builds the last three from a table of classes written in field codes. These profiles only check symbols. `studio/edition-check.js` combines `isValid()` with the profile's `validate`.
+- In the profiles, numeric version 10-12 is edition D and 13-16 is edition E; `STD2525` picks 2525 or APP-6 within an edition. A letter SIDC with standard `APP6` is APP-6(B), scheme S only.
+- Text values that break a length, list or format rule go in `details.fieldWarnings` and leave the symbol valid; `details.modifierErrors` is for a wrong code or a field the symbol does not take.
+- `docs/edition-modifiers.md` has the positions and source decisions; `test/edition-modifiers.test.js` checks the profile rules.
 
-**Upstream**: the `upstream` remote is spatialillusions/milsymbol. Take its releases with `git merge vX.Y.Z`, so the shared history stays usable for the next merge. Fork rules that sit inside upstream code stay there as small guards, for example `!metadata.app6a` in `src/ms/symbol/resolvecolormode.js`.
+**Upstream**: the `upstream` remote is spatialillusions/milsymbol. Take its releases with `git merge vX.Y.Z`, so the shared history stays usable for the next merge.
+- In `src/`, only APP-6A code and the Sea Surface frame shape `A` differ from upstream. Fork rules that sit inside upstream code stay there as small guards, for example `!metadata.app6a` in `src/ms/symbol/resolvecolormode.js`.
+- `test/upstream-parity.test.mjs` (`node --test test/upstream-parity.test.mjs`, also part of `npm run test:node`) compares every edition except APP-6A with the `milsymbol-upstream` devDependency, an npm alias pinned to the merged release. It compares SVG, validity, anchors and Canvas draw calls.
+- When you merge a new upstream release, bump the alias to that exact version in the same change (`npm install -D -E milsymbol-upstream@npm:milsymbol@X.Y.Z`).
+- `docs/upstream-parity-removals.md` lists what left the library, where it came from and how to restore it.
 
 ### APP-6A profile (fork extension, partial conformance)
 
@@ -66,6 +75,7 @@ Style: Prettier with `trailingComma: "none"`; ESLint requires semicolons and `pr
 `studio/` (`index.html`, `app.js`, `styles.css`) is plain static HTML/JS. `scripts/build-studio.mjs` copies it to `dist/studio/` and does the following:
 - Normalizes the symbol tables from the three standards devDependencies, plus the APP-6A catalog, into `catalog.json`.
 - Copies the minified `dist/milsymbol.js` to `vendor/milsymbol.js` and `src/lettersidc/metadata.js` to `vendor/letter-metadata.js` for shared modifier rules.
+- Copies `src/modifierprofiles/` (APP-6A and `common.js`) to `vendor/modifierprofiles/` and `studio/profiles/` to `profiles/`, with `profiles/common.js` rewritten to re-export the vendored helpers. Both folders are cleared first.
 - Preserves the library and three catalog packages' complete licenses in the generated site. `npm run studio:build:public` uses allow-listed `dist/studio-public/`, excluding local PDF audits and hiding their link. It does not deploy.
 
 Because the studio loads the bundled library, library changes are invisible in the studio until `npm run studio:build` runs again. `.openai/hosting.json` serves `dist/studio` statically.
