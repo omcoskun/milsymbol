@@ -35,7 +35,7 @@ export function fieldStates(textModifiers, app6a) {
   });
 }
 
-// Field states from an edition modifier profile (src/modifierprofiles). A
+// Field states from an edition modifier profile (studio/profiles; APP-6A in src/modifierprofiles). A
 // profile whose fields() returns null leaves every field available. A field
 // the class table lists can still be ruled out for this SIDC: APP-6D lists L
 // and N for all equipment, and its unavailableReason() limits them to hostile

@@ -28,8 +28,8 @@ import {
   countryFlagNote
 } from "../studio/editor-helpers.js";
 import { patchSidc, probeOffers } from "../studio/profile-controls.js";
-import { std2525eProfile } from "../src/modifierprofiles/std2525e.js";
-import { app6eProfile } from "../src/modifierprofiles/app6e.js";
+import { std2525eProfile } from "../studio/profiles/std2525e.js";
+import { app6eProfile } from "../studio/profiles/app6e.js";
 import { fieldReference } from "../studio/field-reference.js";
 import { textModifiers } from "../studio/modifier-fields.js";
 import {

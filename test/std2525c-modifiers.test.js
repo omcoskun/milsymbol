@@ -10,7 +10,7 @@ import {
   std2525cSymbolClass,
   std2525cValidate,
   std2525cTextLayout
-} from "../src/modifierprofiles/std2525c.js";
+} from "../studio/profiles/std2525c.js";
 
 const errors = (sidc, options) =>
   std2525cValidate(sidc, options).details.modifierErrors;

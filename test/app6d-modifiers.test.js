@@ -5,12 +5,12 @@ import {
   app6dProfile,
   app6dAmplifierKind,
   app6dIdentityName
-} from "../src/modifierprofiles/app6d.js";
+} from "../studio/profiles/app6d.js";
 import {
   classifySectorCode,
   sectorDictionary,
   sectorPlacement
-} from "../src/modifierprofiles/app6d-sectors.js";
+} from "../studio/profiles/app6d-sectors.js";
 
 // 20-digit SIDC builder: version, context, identity, set, status, HQ/TF/dummy,
 // amplifier (2), entity (6), sector 1, sector 2.

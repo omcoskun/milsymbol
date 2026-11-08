@@ -1,12 +1,12 @@
 // Rules of the APP-6(B), MIL-STD-2525C/D/E, APP-6(D) and APP-6(E) profiles,
 // which the Studio runs (citations in docs/edition-modifiers.md). The library
 // draws these editions as upstream milsymbol 3.0.5.
-import { app6dProfile } from "../src/modifierprofiles/app6d.js";
-import { app6bProfile } from "../src/modifierprofiles/app6b.js";
-import { std2525cProfile } from "../src/modifierprofiles/std2525c.js";
-import { app6eProfile } from "../src/modifierprofiles/app6e.js";
-import { std2525dProfile } from "../src/modifierprofiles/std2525d.js";
-import { std2525eProfile } from "../src/modifierprofiles/std2525e.js";
+import { app6dProfile } from "../studio/profiles/app6d.js";
+import { app6bProfile } from "../studio/profiles/app6b.js";
+import { std2525cProfile } from "../studio/profiles/std2525c.js";
+import { app6eProfile } from "../studio/profiles/app6e.js";
+import { std2525dProfile } from "../studio/profiles/std2525d.js";
+import { std2525eProfile } from "../studio/profiles/std2525e.js";
 import {
   editionField,
   editorGaps,

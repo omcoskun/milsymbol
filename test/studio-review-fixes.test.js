@@ -2,8 +2,8 @@
 // 2026): F3 the APP-6D L/N identity restriction in the editor, F4 Now (UTC)
 // per class. Only the Studio changed; the library profiles are used as they
 // are. Expected values come from the publications the profiles cite.
-import { app6dProfile } from "../src/modifierprofiles/app6d.js";
-import { std2525cProfile } from "../src/modifierprofiles/std2525c.js";
+import { app6dProfile } from "../studio/profiles/app6d.js";
+import { std2525cProfile } from "../studio/profiles/std2525c.js";
 import { app6aProfile } from "../src/modifierprofiles/app6a.js";
 import {
   profileFieldStates,

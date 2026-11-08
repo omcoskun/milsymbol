@@ -2,12 +2,12 @@
 // a wrong code stays an error. The Studio's own examples must not warn.
 import { ms, app6a } from "../index.mjs";
 import { app6aProfile } from "../src/modifierprofiles/app6a.js";
-import { app6bProfile } from "../src/modifierprofiles/app6b.js";
-import { app6dProfile } from "../src/modifierprofiles/app6d.js";
-import { app6eProfile } from "../src/modifierprofiles/app6e.js";
-import { std2525cProfile } from "../src/modifierprofiles/std2525c.js";
-import { std2525dProfile } from "../src/modifierprofiles/std2525d.js";
-import { std2525eProfile } from "../src/modifierprofiles/std2525e.js";
+import { app6bProfile } from "../studio/profiles/app6b.js";
+import { app6dProfile } from "../studio/profiles/app6d.js";
+import { app6eProfile } from "../studio/profiles/app6e.js";
+import { std2525cProfile } from "../studio/profiles/std2525c.js";
+import { std2525dProfile } from "../studio/profiles/std2525d.js";
+import { std2525eProfile } from "../studio/profiles/std2525e.js";
 import { fieldGuide } from "../studio/field-guide.js";
 import { textModifiers } from "../studio/modifier-fields.js";
 

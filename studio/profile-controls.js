@@ -1,5 +1,5 @@
 // Pure helpers that derive Studio controls from an edition modifier profile
-// (src/modifierprofiles, copied to vendor/modifierprofiles/). The Studio keeps
+// (studio/profiles; APP-6A from src/modifierprofiles via vendor/). The Studio keeps
 // no copy of an edition's rules: it asks the profile whether a candidate SIDC
 // is acceptable and offers only what the profile accepts. Profiles and the
 // APP-6D sector helpers are passed in, so this file works in the page and in

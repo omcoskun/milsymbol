@@ -1,17 +1,18 @@
 import { app6aSymbolClass, app6aTextFields, getApp6aFields } from "./vendor/letter-metadata.js";
 import * as app6aRules from "./vendor/modifierprofiles/app6a.js";
-import { std2525cProfile, std2525cTableIV } from "./vendor/modifierprofiles/std2525c.js";
-import { app6bProfile, app6bTableI } from "./vendor/modifierprofiles/app6b.js";
-import { app6eFields, app6eProfile } from "./vendor/modifierprofiles/app6e.js";
-import { std2525dFields, std2525dProfile } from "./vendor/modifierprofiles/std2525d.js";
-import { std2525eFields, std2525eProfile } from "./vendor/modifierprofiles/std2525e.js";
+import { std2525cProfile, std2525cTableIV } from "./profiles/std2525c.js";
+import { app6bProfile, app6bTableI } from "./profiles/app6b.js";
+import { app6eFields, app6eProfile } from "./profiles/app6e.js";
+import { std2525dFields, std2525dProfile } from "./profiles/std2525d.js";
+import { std2525eFields, std2525eProfile } from "./profiles/std2525e.js";
 import {
   app6dProfile,
   app6dIdentityName,
   app6dStatuses,
   app6dEngagementError
-} from "./vendor/modifierprofiles/app6d.js";
-import * as app6dSectors from "./vendor/modifierprofiles/app6d-sectors.js";
+} from "./profiles/app6d.js";
+import * as app6dSectors from "./profiles/app6d-sectors.js";
+import { editionCheck } from "./edition-check.js";
 import { completeEditorSidc, copiedSidc, decodeEditorSidc, displayEditorSidc, editImportedSidc, numericSidcEdition, standardForSidc } from "./sidc-editor.js";
 import { modifierGroups, textModifiers, collectTextModifiers } from "./modifier-fields.js";
 import {
@@ -87,7 +88,7 @@ const standards = [
     label: "MIL‑2525C",
     detail: "15 CHAR",
     family: "legacy",
-    standard: "2525C",
+    standard: "2525",
     version: ""
   },
   {
@@ -380,6 +381,8 @@ const state = {
 let catalog;
 let flagArtwork = new Map();
 let currentSymbol;
+// The symbol's isValid() plus the edition profile's verdict (edition-check.js).
+let currentCheck = null;
 let currentSvg = "";
 let toastTimer;
 
@@ -2120,9 +2123,9 @@ function renderChips(sidc) {
 // Name the SIDC position when an imported code is outside this edition.
 function renderProblem() {
   if (!currentSymbol) return "This code cannot be rendered.";
-  if (currentSymbol.isValid()) return "";
+  if (currentCheck.valid) return "";
   const modern = config().family === "modern";
-  const detail = currentSymbol.isValid(true);
+  const detail = currentCheck.details;
   const sidc = state.customSidc || buildSidc();
   // selectImportedValue() adds "SIDC: …" options for values this edition does not offer.
   const imported = (select, start, end, what) =>
@@ -2186,7 +2189,7 @@ function fitSidcInput() {
 // What the edition profile reports besides errors: unresolved source conflicts
 // and Version Extension Flags are shown outright; notes sit in a fold-out.
 function renderProfileDetails() {
-  const lines = currentSymbol ? profileDetailLines(currentSymbol.isValid(true)) : { notes: [], unresolved: [], versionExtension: [] };
+  const lines = currentCheck ? profileDetailLines(currentCheck.details) : { notes: [], unresolved: [], versionExtension: [] };
   const issues = [...lines.unresolved.map((text) => `Unresolved source conflict. ${text}`), ...lines.versionExtension];
   dom.profileIssues.innerHTML = issues.map((text) => `<li>${escapeHtml(text)}</li>`).join("");
   dom.profileNotesBox.hidden = !lines.notes.length;
@@ -2595,18 +2598,21 @@ function renderAll() {
   document.getElementById("countryFlagNote").textContent = countryFlagNote({ selected: dom.countryFlag.value, code: countryCode, label: countryField?.label });
   window.ms.setStandard(config().standard);
   try {
-    currentSymbol = new window.ms.Symbol(sidc, currentOptions());
+    const options = currentOptions();
+    currentSymbol = new window.ms.Symbol(sidc, options);
+    currentCheck = editionCheck(currentSymbol, activeProfile(), sidc, options);
     currentSvg = currentSymbol.asSVG();
     dom.symbolPreview.innerHTML = currentSvg;
     fitPreview();
     document.getElementById("compactPreview").innerHTML = currentSvg;
-    const valid = Boolean(currentSymbol.isValid());
+    const valid = Boolean(currentCheck.valid);
     dom.renderState.classList.toggle("invalid", !valid);
     dom.renderState.innerHTML = `<i></i>${valid ? "Rendered" : "Check code / modifiers"}`;
-    const detail = currentSymbol.isValid(true);
+    const detail = currentCheck.details;
     dom.renderState.title = [...(detail.sidcErrors || []), ...(detail.identityErrors || []), ...(detail.modifierErrors || []), ...(detail.notes || [])].join("; ");
   } catch (error) {
     currentSymbol = null;
+    currentCheck = null;
     currentSvg = "";
     document.getElementById("compactPreview").replaceChildren();
     dom.symbolPreview.innerHTML = `<div class="empty-state">Unable to render symbol.<br>${escapeHtml(error.message)}</div>`;

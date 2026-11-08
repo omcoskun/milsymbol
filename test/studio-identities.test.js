@@ -9,8 +9,8 @@ import {
   isUsOnlyContext,
   usOnlyIdentityLabel
 } from "../studio/identities.js";
-import { app6dContexts } from "../src/modifierprofiles/app6d.js";
-import { app6eProfile } from "../src/modifierprofiles/app6e.js";
+import { app6dContexts } from "../studio/profiles/app6d.js";
+import { app6eProfile } from "../studio/profiles/app6e.js";
 
 const app6a = { id: "app6a", family: "legacy" };
 const app6b = { id: "app6b", family: "legacy" };

@@ -8,9 +8,9 @@ import natoStandards from "stanag-app6";
 import {
   std2525cProfile,
   std2525cTableIV
-} from "../src/modifierprofiles/std2525c.js";
+} from "../studio/profiles/std2525c.js";
 import { app6aProfile, app6aTextFields } from "../src/modifierprofiles/app6a.js";
-import { app6dProfile } from "../src/modifierprofiles/app6d.js";
+import { app6dProfile } from "../studio/profiles/app6d.js";
 import {
   profileFieldStates,
   dtgForField,

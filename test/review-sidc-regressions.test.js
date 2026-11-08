@@ -1,5 +1,5 @@
-import { app6eProfile } from "../src/modifierprofiles/app6e.js";
-import { std2525eProfile } from "../src/modifierprofiles/std2525e.js";
+import { app6eProfile } from "../studio/profiles/app6e.js";
+import { std2525eProfile } from "../studio/profiles/std2525e.js";
 import { fieldGuide } from "../studio/field-guide.js";
 import { identityList, identityLabel, convertIdentity } from "../studio/identities.js";
 
