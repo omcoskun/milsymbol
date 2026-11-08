@@ -36,10 +36,10 @@ import {
   editorGaps
 } from "./profile-controls.js";
 
-import { exportFilename, pngOutputSize, pngScale, fieldStates, profileFieldStates, dtgForField, evaluationRating, sidcParts, pushRecent, placeholderOptions, readTextRows, fieldValueChars, fitRowWidths, layoutFieldBoxes, paletteProgress, baseBranch, entryCrumbs, groupEntries, paletteSections, matchesSearch, normalize, mobilities, mobilityModeName, amplifierChoice, amplifierPlacementNote, sharedViewBox, withViewBox, modifierColorUnused, modifierChoice, centeredGlyphs, frameShapeChoice, problemReasons, themeChoice, gridChoice, designationNotes, amplifierNotes, countryFlagNote } from "./editor-helpers.js";
+import { exportFilename, pngOutputSize, pngScale, fieldStates, profileFieldStates, dtgForField, evaluationRating, sidcParts, pushRecent, placeholderOptions, readTextRows, fieldValueChars, fitRowWidths, layoutFieldBoxes, paletteProgress, baseBranch, entryCrumbs, groupEntries, paletteSections, matchesSearch, normalize, mobilities, mobilityModeName, amplifierChoice, amplifierPlacementNote, sharedViewBox, withViewBox, modifierColorUnused, modifierChoice, centeredGlyphs, frameShapeChoice, problemReasons, gridChoice, designationNotes, amplifierNotes, countryFlagNote } from "./editor-helpers.js";
 import { createGlyphPicker } from "./glyph-picker.js";
 import { createDraftAutosave, createDraftStore, draftStateKeys, sameDraft } from "./draft-store.js";
-import { setupInfoPopovers, setupMenuPopover } from "./info-popover.js";
+import { setupInfoPopovers } from "./info-popover.js";
 import { fieldReference } from "./field-reference.js";
 import { fieldGuide } from "./field-guide.js";
 import { app6aIdentities, contextLabel, contextOptions, convertIdentity, decodeIdentity, identityCode, identityLabel, identityList, isUsOnlyContext, usOnlyIdentityLabel } from "./identities.js";
@@ -238,9 +238,6 @@ const dom = Object.fromEntries(
     "compactCopy",
     "editionSection",
     "previewBackground",
-    "themeChoice",
-    "settingsButton",
-    "settingsMenu",
     "editionMeta",
     "textSummary",
     "carryNotes",
@@ -833,10 +830,7 @@ function filteredIcons() {
 
 function safeMiniSvg(icon) {
   try {
-    return new window.ms.Symbol(
-      buildSidc(icon, true),
-      currentOptions(true)
-    ).asSVG();
+    return new window.ms.Symbol(buildSidc(icon, true), { ...currentOptions(true), size: 40 }).asSVG();
   } catch {
     return "<span>—</span>";
   }
@@ -1247,13 +1241,13 @@ function syncModifiers() {
   // modes the symbol may carry; every disabled control keeps the profile's reason.
   const offers = app6a ? null : profileOffers(state.customSidc || buildSidc());
   const flagReasons = {};
-  for (const control of [dom.feintDummy, dom.hq, dom.taskForce]) control.parentElement.title = "";
+  for (const control of [dom.feintDummy, dom.hq, dom.taskForce]) control.closest("label").title = "";
   if (offers && offers.flags) {
     for (const [key, offer] of Object.entries(offers.flags)) {
       const control = { feintDummy: dom.feintDummy, hq: dom.hq, taskForce: dom.taskForce }[key];
       if (offer.offered) continue;
       control.disabled = true;
-      control.parentElement.title = offer.reason;
+      control.closest("label").title = offer.reason;
       flagReasons[key] = offer.reason;
     }
     const hasOffer = (list) => list.some((item) => item[0] !== "" && offers.amplifier.get(item[0])?.offered);
@@ -2006,24 +2000,52 @@ function updateSegments(sidc) {
   dom.sidcSegments.innerHTML = sidcParts(sidc, dEdition)
     .map(({ key, label, value }) => {
       const meaning = describePart(key, value, sidc);
-      return `<div title="${escapeHtml(meaning)}"><p><span>${escapeHtml(label)}</span><code>${escapeHtml(value || "—")}</code></p>${meaning ? `<small>${escapeHtml(meaning)}</small>` : ""}</div>`;
+      // The symbol's own part (function or entity) gets a full row for its long names.
+      const wide = key === "function" || key === "entity" ? ' class="wide"' : "";
+      // Every box keeps its second line. A part the standard's tables give no
+      // meaning (national data, extensions) shows a quiet dash, not a guess.
+      const said = meaning
+        ? `<dd>${escapeHtml(meaning)}</dd>`
+        : `<dd class="none"><span aria-hidden="true">—</span><span class="visually-hidden">No meaning listed</span></dd>`;
+      return `<div${wide}><dt><span>${escapeHtml(label)}</span><code>${escapeHtml(value || "—")}</code></dt>${said}</div>`;
     })
     .join("");
 }
 
 const chipCache = new Map();
 
-function chipSvg(sidc, { size = 18, icon = true, modifierColor = "" } = {}) {
-  const key = `${state.standardId}|${sidc}|${dom.colorMode.value}|${dom.strokeWidth.value}|${size}|${icon}|${modifierColor}`;
+function chipSvg(sidc, { size = 18, icon = true, modifierColor = "", hqStaffLength = 0 } = {}) {
+  const key = `${state.standardId}|${sidc}|${dom.colorMode.value}|${dom.strokeWidth.value}|${size}|${icon}|${modifierColor}|${hqStaffLength}`;
   if (!chipCache.has(key)) {
     let svg = "";
     try {
-      svg = new window.ms.Symbol(sidc, { ...currentOptions(true), size, icon, infoFields: false, modifierColor }).asSVG();
+      svg = new window.ms.Symbol(sidc, { ...currentOptions(true), size, icon, infoFields: false, modifierColor, hqStaffLength }).asSVG();
     } catch {}
     if (chipCache.size > 400) chipCache.clear();
     chipCache.set(key, svg);
   }
   return chipCache.get(key);
+}
+
+// Unit designation: each switch shows the current frame with its mark alone,
+// coded as flagCode() codes them (feint/dummy 1, headquarters 2, task force 4).
+// base is the SIDC without designation or amplifier, as renderChips() makes it.
+const designationCodes = { feintDummy: 1, hq: 2, taskForce: 4 };
+// The thumbnails draw a short staff (40 units instead of 100): at full length
+// the headquarters or location-offset staff is the tallest part and shrinks
+// every frame of the group to a few pixels.
+function renderDesignationGlyphs(base, modern) {
+  const options = { size: 30, hqStaffLength: 40 };
+  const svgs = Object.values(designationCodes).map((code) => {
+    if (modern) return chipSvg(`${base.slice(0, 7)}${code}${base.slice(8)}`, options);
+    // An installation keeps its H; only feint/dummy goes with it.
+    const amplifier = base[10] === "H" ? `H${code === 1 ? "B" : "-"}` : `${legacyFlagLetters[code]}-`;
+    return chipSvg(`${base.slice(0, 10)}${amplifier}${base.slice(12)}`, options);
+  });
+  const drawn = centeredGlyphs(svgs);
+  Object.keys(designationCodes).forEach((key, index) => {
+    dom[key].closest("label").querySelector(".toggle-glyph").innerHTML = drawn[index];
+  });
 }
 
 // Chips are a visual front end for the identity and status selects, which
@@ -2036,8 +2058,11 @@ function renderChips(sidc) {
   const variant = (position, code) => base.slice(0, position) + code + base.slice(position + 1);
   // A chip the edition profile does not offer stays only while it is the
   // current value, flagged, so the problem line and the chip agree.
-  const chip = (select, value, label, code, position, flag) =>
-    `<button type="button" class="chip${flag ? " chip-invalid" : ""}" data-value="${escapeHtml(value)}" aria-pressed="${select.value === value}"${flag ? ` title="${escapeHtml(flag)}"` : ""}${select.disabled ? " disabled" : ""}><span class="chip-glyph">${code ? chipSvg(variant(position, code)) : ""}</span><span>${escapeHtml(label)}</span>${flag ? '<small class="chip-flag">not valid here</small>' : ""}</button>`;
+  const chip = (select, value, label, glyph, flag) =>
+    `<button type="button" class="chip${flag ? " chip-invalid" : ""}" data-value="${escapeHtml(value)}" aria-pressed="${select.value === value}"${flag ? ` title="${escapeHtml(flag)}"` : ""}${select.disabled ? " disabled" : ""}><span class="chip-glyph">${glyph}</span><span>${escapeHtml(label)}</span>${flag ? '<small class="chip-flag">not valid here</small>' : ""}</button>`;
+  // The pictures of a group share one scale, each frame centred in its box,
+  // so the CSS can draw them as large as the chip allows.
+  const glyphsFor = (rows, position) => centeredGlyphs(rows.map((row) => (row.code ? chipSvg(variant(position, row.code), { size: 30 }) : "")));
   const standard = config();
   const identities = identityList(standard);
   const offers = profileOffers(sidc);
@@ -2054,8 +2079,7 @@ function renderChips(sidc) {
   const focusedValue = focusedGroup && focused.dataset.value;
   const importedIdentityReason = (value) =>
     state.standardId === "app6a" ? app6aRules.app6aIdentity(value.replace(/^code:/, ""), sidc[2]).reason : "";
-  const primary = [];
-  const secondary = [];
+  const identityRows = [];
   let secondarySelection = "";
   for (const item of dom.affiliation.options) {
     const entry = identities.find((candidate) => candidate.value === item.value);
@@ -2064,20 +2088,31 @@ function renderChips(sidc) {
     const code = entry ? identityCode(entry, standard, state.context) : item.value.replace(/^code:/, "");
     const label = entry ? identityLabelFor(entry) : item.textContent;
     const common = ["friend", "hostile", "neutral", "unknown"].includes(item.value);
-    (common ? primary : secondary).push(chip(dom.affiliation, item.value, label, code, modern ? 3 : 1, flag));
+    identityRows.push({ value: item.value, label, code, flag, common });
     if (!common && item.value === dom.affiliation.value) secondarySelection = `· ${label}${flag ? " — not valid here" : ""}`;
   }
-  document.getElementById("primaryIdentityChips").innerHTML = primary.join("");
-  document.getElementById("secondaryIdentityChips").innerHTML = secondary.join("");
-  document.getElementById("moreIdentities").hidden = !secondary.length;
+  // The four common identities and the rest are scaled apart: the "?", J and
+  // K marks of the others widen their box and would shrink the four frames.
+  const identityChips = (common) => {
+    const rows = identityRows.filter((row) => row.common === common);
+    const glyphs = glyphsFor(rows, modern ? 3 : 1);
+    return rows.map((row, index) => chip(dom.affiliation, row.value, row.label, glyphs[index], row.flag)).join("");
+  };
+  document.getElementById("primaryIdentityChips").innerHTML = identityChips(true);
+  document.getElementById("secondaryIdentityChips").innerHTML = identityChips(false);
+  document.getElementById("moreIdentities").hidden = identityRows.every((row) => row.common);
   document.getElementById("moreIdentitySelection").textContent = secondarySelection;
-  dom.statusChips.innerHTML = [...dom.status.options].map((item) => {
+  const statusRows = [];
+  for (const item of dom.status.options) {
     const entry = statuses.find((candidate) => candidate.value === item.value);
     const flag = offerFlag(dom.status, "status", item.value);
-    if (flag === null) return "";
+    if (flag === null) continue;
     const code = entry ? entry[modern ? "numeric" : "legacy"] : item.value.replace(/^code:/, "");
-    return chip(dom.status, item.value, entry ? statusLabelFor(entry) : item.textContent, code, modern ? 6 : 3, flag);
-  }).join("");
+    statusRows.push({ value: item.value, label: entry ? statusLabelFor(entry) : item.textContent, code, flag });
+  }
+  const statusGlyphs = glyphsFor(statusRows, modern ? 6 : 3);
+  dom.statusChips.innerHTML = statusRows.map((row, index) => chip(dom.status, row.value, row.label, statusGlyphs[index], row.flag)).join("");
+  renderDesignationGlyphs(base, modern);
   if (focusedGroup)
     [...focusedGroup.querySelectorAll(".chip")].find((item) => item.dataset.value === focusedValue)?.focus({ preventScroll: true });
 }
@@ -2140,6 +2175,10 @@ function renderSidcStatus(sidc) {
   const length = dom.sidcInput.value.replace(/\s/g, "").length;
   dom.sidcLength.innerHTML = `${length}<span class="unit"> characters</span>`;
   dom.sidcLength.title = `${length} characters`;
+  fitSidcInput();
+}
+
+function fitSidcInput() {
   dom.sidcInput.style.height = "auto";
   dom.sidcInput.style.height = `${dom.sidcInput.scrollHeight + 2}px`;
 }
@@ -2161,6 +2200,7 @@ function renderProfileDetails() {
 // probe rendering with each field set to its "[code]" marker gives the rows;
 // the boxes and the form fields hold the same values.
 const layoutScale = 38 / 40; // 38 px between two text rows of 40 symbol units
+const layoutMaxZoom = 1.3;
 let layoutSignature = "";
 let layoutFits = true;
 let layoutUndrawn = [];
@@ -2284,6 +2324,9 @@ function buildFieldLayout(sidc, states, options, room) {
   const px = (value) => `${Math.round(value)}px`;
   canvas.style.width = px(Math.ceil(bounds.width));
   canvas.style.height = px(Math.ceil(bounds.height));
+  // Spare room draws the whole layout larger, boxes and text with the symbol,
+  // in steps of 5 %, so a few pixels of resizing do not change it.
+  canvas.style.zoom = String(Math.min(layoutMaxZoom, Math.max(1, Math.floor((room / bounds.width) * 20) / 20)));
   let art = canvas.querySelector(".layout-symbol");
   if (!art) {
     art = document.createElement("div");
@@ -2519,6 +2562,26 @@ function graphicHelp(key) {
     : "With a headquarters, the arrow starts at the end of the HQ staff."}`;
 }
 
+// A larger stage shows a larger symbol: the drawing scales with the stage's
+// shorter side over previewBase px, never below its own size. The scale does
+// not follow the symbol, so the size slider still shows its effect; a symbol
+// too big for the stage is fitted into it. Editor only: exports keep the size
+// the options give.
+const previewBase = 230;
+const previewMaxZoom = 1.5;
+function fitPreview() {
+  const svg = dom.symbolPreview.querySelector(":scope > svg");
+  if (!svg) return;
+  const width = Number(svg.getAttribute("width"));
+  const height = Number(svg.getAttribute("height"));
+  const room = { width: dom.symbolPreview.clientWidth, height: dom.symbolPreview.clientHeight };
+  if (!width || !height || !room.width || !room.height) return;
+  const zoom = Math.min(previewMaxZoom, Math.max(1, Math.min(room.width, room.height) / previewBase));
+  const scale = Math.min(zoom, room.width / width, room.height / height);
+  svg.style.width = `${Math.floor(width * scale)}px`;
+  svg.style.height = `${Math.floor(height * scale)}px`;
+}
+
 function renderAll() {
   const icon = selectedIcon();
   if (!icon) return;
@@ -2535,6 +2598,7 @@ function renderAll() {
     currentSymbol = new window.ms.Symbol(sidc, currentOptions());
     currentSvg = currentSymbol.asSVG();
     dom.symbolPreview.innerHTML = currentSvg;
+    fitPreview();
     document.getElementById("compactPreview").innerHTML = currentSvg;
     const valid = Boolean(currentSymbol.isValid());
     dom.renderState.classList.toggle("invalid", !valid);
@@ -2796,7 +2860,6 @@ function moveCardFocus(card, step) {
 
 function bindEvents() {
   setupInfoPopovers();
-  setupMenuPopover(dom.settingsButton, dom.settingsMenu);
   for (const event of ["input", "change"]) document.addEventListener(event, dismissResetUndo, true);
   window.addEventListener("pagehide", draftAutosave.flush);
   document.addEventListener("visibilitychange", () => {
@@ -3075,6 +3138,15 @@ function bindEvents() {
     syncLayoutHelp();
   });
   new ResizeObserver(() => renderFieldLayout()).observe(document.getElementById("panel-text"));
+  new ResizeObserver(() => fitPreview()).observe(dom.stage);
+  // Reflow a long code when the sidebar narrows or the mobile Apply button
+  // moves below it. Ignore height-only changes caused by fitting the text.
+  let sidcWidth = 0;
+  new ResizeObserver(([entry]) => {
+    if (entry.contentRect.width === sidcWidth) return;
+    sidcWidth = entry.contentRect.width;
+    fitSidcInput();
+  }).observe(dom.sidcInput);
   dom.sidcInput.addEventListener("input", () => {
     // "_" counts as "-"; replace it in place without moving the caret.
     if (dom.sidcInput.value.includes("_")) {
@@ -3176,12 +3248,6 @@ function bindEvents() {
   // The grid is a preview aid only; exports stay transparent.
   dom.gridToggle.addEventListener("change", () => setEditorChoice("grid", dom.gridToggle.checked ? "on" : "off", "on"));
   dom.previewBackground.addEventListener("change", () => setEditorChoice("preview", dom.previewBackground.value, "light"));
-  dom.themeChoice.addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-value]");
-    if (!button) return;
-    showThemeChoice(button.dataset.value);
-    setEditorChoice("theme", button.dataset.value, "system");
-  });
   dom.outlineToggle.addEventListener("change", () => {
     state.outline = dom.outlineToggle.checked;
     renderAll();
@@ -3247,27 +3313,17 @@ function setEditorChoice(name, value, fallback) {
   } catch {}
 }
 
-// The theme sits in the settings menu of the top bar, apart from the symbol's style.
-function showThemeChoice(value) {
-  for (const button of dom.themeChoice.querySelectorAll("button")) {
-    button.classList.toggle("active", button.dataset.value === value);
-    button.setAttribute("aria-pressed", String(button.dataset.value === value));
-  }
-}
-
 function loadEditorChoices() {
-  let theme = null;
   let preview = null;
   let grid = null;
   try {
-    theme = localStorage.getItem("symbol-studio:theme");
+    // The interface is always light now; drop a theme saved by an earlier version.
+    localStorage.removeItem("symbol-studio:theme");
     preview = localStorage.getItem("symbol-studio:preview");
     grid = localStorage.getItem("symbol-studio:grid");
   } catch {}
-  showThemeChoice(themeChoice(theme));
   dom.previewBackground.value = ["dark", "map"].includes(preview) ? preview : "light";
   dom.gridToggle.checked = gridChoice(grid) === "on";
-  setEditorChoice("theme", themeChoice(theme), "system");
   setEditorChoice("preview", dom.previewBackground.value, "light");
   setEditorChoice("grid", gridChoice(grid), "on");
 }

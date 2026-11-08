@@ -7,15 +7,7 @@
       name="description"
       content="Browse military symbols, select a standard, and configure modifiers. Export as SVG or PNG."
     />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#11171e" />
-    <script>
-      // Before the first paint, so a saved theme does not flash.
-      try {
-        const theme = localStorage.getItem("symbol-studio:theme");
-        if (theme === "dark" || theme === "light") document.documentElement.dataset.theme = theme;
-      } catch {}
-    </script>
+    <meta name="theme-color" content="#ffffff" />
     <link rel="icon" href="./favicon.svg" />
     <link rel="stylesheet" href="./styles.css" />
     <title>Military Symbol Editor</title>
@@ -40,26 +32,6 @@
           </label>
           <a href="https://github.com/omcoskun/milsymbol" target="_blank" rel="noreferrer">Source code ↗</a>
           <button id="helpButton" class="quiet-button" type="button">Help</button>
-          <button id="settingsButton" class="settings-button" type="button" popovertarget="settingsMenu" aria-haspopup="dialog" aria-expanded="false" aria-label="Settings" title="Settings">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M19 7h1M4 17h3M13 17h7" /><circle cx="16" cy="7" r="2.5" /><circle cx="10" cy="17" r="2.5" /></svg>
-          </button>
-          <div class="info-popover settings-menu" id="settingsMenu" popover="auto" role="dialog" aria-labelledby="settingsTitle">
-            <div class="info-popover-head"><strong id="settingsTitle">Settings</strong><button class="info-close" type="button" popovertarget="settingsMenu" popovertargetaction="hide" aria-label="Close settings">×</button></div>
-            <div class="settings-body">
-              <div class="settings-row">
-                <span class="settings-label" id="themeLabel">Theme</span>
-                <div class="segmented" id="themeChoice" role="group" aria-labelledby="themeLabel">
-                  <button class="active" data-value="system" type="button" aria-pressed="true">System</button
-                  ><button data-value="light" type="button" aria-pressed="false">Light</button
-                  ><button data-value="dark" type="button" aria-pressed="false">Dark</button>
-                </div>
-              </div>
-              <div class="settings-row">
-                <span class="settings-label">Contact</span>
-                <a href="mailto:mertc0604@gmail.com">mertc0604@gmail.com</a>
-              </div>
-            </div>
-          </div>
         </div>
       </header>
 
@@ -108,7 +80,7 @@
             </div>
             <details id="sidcDetails" class="sidc-details">
               <summary>Code details</summary>
-              <div id="sidcSegments" class="sidc-segments" aria-label="Code breakdown"></div>
+              <dl id="sidcSegments" class="sidc-segments" aria-label="Code breakdown"></dl>
             </details>
           </section>
 
@@ -171,10 +143,10 @@
 
                 <section class="card-section">
                   <div class="section-head"><div class="section-title"><h3>Unit designation</h3><div class="standard-info" data-info="designation" data-info-title="Unit designation"><span class="section-meta" id="designationMeta"></span><p class="field-note" id="designationNote"></p></div></div></div>
-                  <div class="toggle-grid toggle-chips">
-                    <label><input id="hq" type="checkbox" /><span id="hqLabel">Headquarters</span></label
-                    ><label><input id="taskForce" type="checkbox" /><span>Task force</span></label
-                    ><label><input id="feintDummy" type="checkbox" /><span>Feint / dummy</span></label>
+                  <div class="toggle-grid toggle-chips designation-grid">
+                    <label><span class="toggle-glyph" aria-hidden="true"></span><span class="toggle-text"><input id="hq" type="checkbox" /><span id="hqLabel">Headquarters</span></span></label
+                    ><label><span class="toggle-glyph" aria-hidden="true"></span><span class="toggle-text"><input id="taskForce" type="checkbox" /><span>Task force</span></span></label
+                    ><label><span class="toggle-glyph" aria-hidden="true"></span><span class="toggle-text"><input id="feintDummy" type="checkbox" /><span>Feint / dummy</span></span></label>
                   </div>
                   <label class="inline-field" id="hqStaffRow" hidden title="0 draws the default length"><span><span id="hqStaffLabel">HQ staff length</span> <span class="field-code">S</span></span><span class="unit-input"><input id="hqStaffLength" type="number" min="0" max="500" value="0" placeholder="0" /><span aria-hidden="true">px</span></span></label>
                   <p class="field-note" id="designationReason" hidden></p>
@@ -321,13 +293,14 @@
                 <section class="card-section">
                   <div class="section-head"><h3>Style</h3></div>
                   <div class="style-grid">
-                    <label class="range-field"><span>Symbol size <output id="sizeOutput">100%</output></span><input id="symbolSize" type="range" min="55" max="170" value="100" /></label>
+                    <label class="range-field"><span>Symbol size <output id="sizeOutput">100%</output></span><input id="symbolSize" type="range" min="55" max="170" value="100" aria-describedby="symbolSizeNote" /></label>
                     <label class="range-field"><span>Stroke width <output id="strokeOutput">4</output></span><input id="strokeWidth" type="range" min="1" max="8" step="0.5" value="4" /></label>
                     <label class="select-field"><span>Color palette</span><select id="colorMode"><option>Light</option><option>Medium</option><option>Dark</option></select></label>
                     <label class="select-field" id="stackField"><span>Symbol stack</span><select id="stack">
                       <option value="0">Single symbol</option><option value="1">2 symbols</option><option value="2">3 symbols</option><option value="3">4 symbols</option><option value="4">5 symbols</option><option value="5">6 symbols</option>
                     </select></label>
                   </div>
+                  <p class="field-note" id="symbolSizeNote">Size applies to exports. The preview scales to fit the available space.</p>
                 </section>
               </div>
 

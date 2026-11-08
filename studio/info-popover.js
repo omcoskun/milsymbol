@@ -61,9 +61,3 @@ export function setupInfoPopovers() {
     if (popover && !popover.contains(event.target)) popover.hidePopover();
   }, true);
 }
-
-// A menu with its own .info-popover box right after its button, such as the
-// settings in the top bar. The handlers above move or close it like the others.
-export function setupMenuPopover(button, popover) {
-  anchorTo(popover, button);
-}

@@ -1,6 +1,6 @@
 # Military Symbol Studio
 
-The repository includes an English military symbol editor in `studio/`, with system-aware light/dark themes, a search panel, tabbed configuration, and a persistent preview with a SIDC console.
+The repository includes an English military symbol editor in `studio/`, with a light interface, a search panel, tabbed configuration, and a persistent preview with a SIDC console.
 
 ## Run locally
 
@@ -25,12 +25,12 @@ or incompatible saved records are ignored. A visit that changes nothing stores n
 and a reload announces a restored draft only when it differs from a new editor.
 
 Reset clears modifiers and immediately saves the reset draft. Undo reset restores the
-complete previous draft until the next edit or reload. Theme, preview background and
-preview grid remain separate browser preferences.
+complete previous draft until the next edit or reload. Preview background and preview
+grid remain separate browser preferences.
 
 ## Layout
 
-- **Top bar:** standard selector, Help, a Settings button and the search launcher. Settings opens a small box with the theme (System, Light or Dark) and a contact address; it closes on Escape or a click outside. Click it or press `/` to open the symbol search panel. The panel holds the symbol set list with counts, Recently used (the last 8 symbols per standard, stored in `localStorage`), and result tiles with mini previews. Browsing a set, the tiles sit under a closable heading for each group of the set and a subheading for each group inside it (APP-6A Ground units: COMBAT, then AIR DEFENSE, ARMOR, ...), taken from the catalogue hierarchy; All symbol sets has a heading per set. A search lists its matches as one grid. The preview heading names the symbol's set and groups in full; each opens the palette at that group. In the panel, `↑`/`↓` move between results, `Enter` selects, and `Esc` clears the search and then closes the panel. A full SIDC typed into the search finds its symbol, also in the form the publications print (`S*G*UCI---*****`); a long word such as reconnaissance stays a word search.
+- **Top bar:** standard selector, source code link, Help and the search launcher. Click the launcher or press `/` to open the symbol search panel. The panel holds the symbol set list with counts, Recently used (the last 8 symbols per standard, stored in `localStorage`), and result tiles with mini previews. Browsing a set, the tiles sit under a closable heading for each group of the set and a subheading for each group inside it (APP-6A Ground units: COMBAT, then AIR DEFENSE, ARMOR, ...), taken from the catalogue hierarchy; All symbol sets has a heading per set. A search lists its matches as one grid. The preview heading names the symbol's set and groups in full; each opens the palette at that group. In the panel, `↑`/`↓` move between results, `Enter` selects, and `Esc` clears the search and then closes the panel. A full SIDC typed into the search finds its symbol, also in the form the publications print (`S*G*UCI---*****`); a long word such as reconnaissance stays a word search.
 - **Left column (sticky):**
   - Preview card: name, path, class badge (Unit, Equipment, Installation, Tactical point on APP-6A), the render state (Rendered, or a red "Check code / modifiers" when the symbol does not render cleanly), and the preview stage. Under it, Edit text (opens Amplifiers in Field positions) and two small download links, PNG and SVG. Exports always use the normal render.
   - The preview grid and the outline are switches in the Display tab; the grid is an editor aid only, exports have a transparent background.

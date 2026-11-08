@@ -22,7 +22,6 @@ import {
   centeredGlyphs,
   frameShapeChoice,
   problemReasons,
-  themeChoice,
   gridChoice,
   designationNotes,
   amplifierNotes,
@@ -539,12 +538,6 @@ export default {
       problemReasons({ named: [], errors: ["Bad code."], generic: ["Unknown identity."] }),
       ["Bad code."]
     ]
-  },
-  "interface theme": {
-    "a saved choice is used": [themeChoice("dark"), "dark"],
-    "light can be saved too": [themeChoice("light"), "light"],
-    "nothing saved follows the system": [themeChoice(null), "system"],
-    "anything else follows the system": [themeChoice("blue"), "system"]
   },
   "typing in a list": {
     "a letter goes to the next name that starts with it": [

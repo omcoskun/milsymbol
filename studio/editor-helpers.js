@@ -615,9 +615,6 @@ export function problemReasons({ named, errors, generic }) {
   return specific.length ? specific : [...new Set(generic)];
 }
 
-// The saved interface theme; anything else follows the system.
-export const themeChoice = (saved) => (saved === "dark" || saved === "light" ? saved : "system");
-
 // The saved preview grid choice; anything else draws the grid.
 export const gridChoice = (saved) => (saved === "off" ? "off" : "on");
 
