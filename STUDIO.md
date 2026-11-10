@@ -1,4 +1,4 @@
-# Military Symbol Studio
+# Military Symbol Editor
 
 The repository includes an English military symbol editor in `studio/`, with a light interface, a search panel, tabbed configuration, and a persistent preview with a SIDC console.
 
@@ -11,6 +11,27 @@ npm run studio:serve
 ```
 
 Open `http://127.0.0.1:4173`.
+
+### React version (`app/`)
+
+`app/` holds the same editor in React 18 (JSX, Webpack 5, Babel 7, MUI with
+Emotion). It has its own `package.json`; the root package stays free of
+runtime dependencies. GitHub Pages still publishes the vanilla `studio/`.
+
+```bash
+cd app
+npm install
+npm start        # writes the data, then serves http://localhost:3008
+npm run build    # writes the data, then builds app/build/
+IWC=hwf npm run build
+```
+
+- `npm run data` (run by `start` and `build`) is `node ../scripts/build-studio.mjs --data public`. It writes `catalog.json`, `flags.json`, `LICENSE.txt` and `THIRD_PARTY_LICENSES.txt` into `app/public/`. These files are generated and stay out of git.
+- `IWC` is `hap` (the default) or `hwf`. Webpack's DefinePlugin writes it into the bundle as the `IWC` constant. Any other value stops the build.
+- `public/config.json` (data URLs and links, with per-IWC overrides under `byIwc`) and `public/lang.json` (the components' fixed English texts) are fetched at run time.
+- The app imports the library from `../index.js` and the editor rules from the plain modules in `studio/` (profiles, `editor-helpers.js`, `sidc-editor.js`, `draft-store.js`, ...). It does not copy them.
+- `app/src/editor/store.js` holds all editor state, control values and the disabled map, and takes `ms`, the catalog and a storage object as parameters. Components read it through `useSyncExternalStore`. Drafts use the same `symbol-studio:*` keys and format as the vanilla editor. Both editors served from one origin share a draft.
+- `node --test test/app-editor-store.test.mjs` tests the store in Node without a browser. It also runs as part of `npm run test:node`.
 
 The build creates `dist/studio/`, including a normalized searchable catalog generated from the standard data packages already used by milsymbol. The site offers MIL-STD-2525C/D/E and APP-6A/B/D/E views. APP-6E uses a compatibility catalog; its codes carry version 16 (APP-06(E)(2), Table A-1). FM 1-02.2 is not offered in the editor; the underlying library is unchanged. Symbols can be exported as SVG or PNG.
 

@@ -2396,23 +2396,25 @@ a.support-note {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-/* A long category name shortens with an ellipsis; the code always stays visible. */
+/* The symbol set has its own line and wraps there, so its name is whole; the
+   code sits under it on one line. */
 .symbol-card small {
   display: flex;
-  justify-content: center;
-  gap: 4px;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
   max-width: 100%;
   color: var(--muted);
   font-size: 12px;
-  white-space: nowrap;
 }
 .symbol-card .card-category {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 .symbol-card .card-code {
   flex: none;
+  white-space: nowrap;
 }
 .category-badge {
   display: inline-block;

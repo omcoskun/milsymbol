@@ -26,7 +26,7 @@
     "studio:build": "rollup -c && npm run minify && npm run postbuild && node scripts/build-studio.mjs",
     "studio:build:public": "rollup -c && npm run minify && npm run postbuild && node scripts/build-studio.mjs --public",
     "studio:serve": "node scripts/serve-studio.mjs",
-    "lint": "eslint src test studio",
+    "lint": "eslint src test studio app/src",
     "prebuild": "npm run lint && npm test",
     "build": "npm run bundle && npm run minify",
     "postbuild": "node --eval \"const fs = require('node:fs'); fs.writeFileSync('./dist/package.json', JSON.stringify({ type: 'commonjs' }));\"",
@@ -37,14 +37,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spatialillusions/milsymbol.git"
+    "url": "git+https://github.com/omcoskun/milsymbol.git"
   },
   "author": "Måns Beckman (http://www.spatialillusions.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/spatialillusions/milsymbol/issues"
+    "url": "https://github.com/omcoskun/milsymbol/issues"
   },
-  "homepage": "https://github.com/spatialillusions/milsymbol",
+  "homepage": "https://github.com/omcoskun/milsymbol#readme",
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.3",
     "eslint": "^10.0.0",
@@ -59,8 +59,5 @@
     "stanag-app6": "^0.2.0",
     "tead": "^0.7.1",
     "uglify-js": "^3.19.3"
-  },
-  "babel": {
-    "presets": "env"
   }
 }

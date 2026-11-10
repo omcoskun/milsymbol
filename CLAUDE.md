@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-milsymbol: a dependency-free JavaScript library that renders military unit symbols (MIL-STD-2525B/C/D/E, APP-6A/B/D/E) as SVG or Canvas from a SIDC code. This checkout also contains **Military Symbol Studio** (`studio/`), a browser editor built on the library, and an APP-6A (1998) point-symbol profile. See `STUDIO.md` and `docs/app6a.md`.
+milsymbol: a dependency-free JavaScript library that renders military unit symbols (MIL-STD-2525B/C/D/E, APP-6A/B/D/E) as SVG or Canvas from a SIDC code. This checkout also contains **Military Symbol Editor** (`studio/`, called the Studio in code and docs), a browser editor built on the library, and an APP-6A (1998) point-symbol profile. See `STUDIO.md` and `docs/app6a.md`.
 
 ## Commands
 
@@ -17,6 +17,16 @@ npm run lint            # eslint src test studio (checks without rewriting files
 npm run test:node       # Node integration tests, including fresh ESM/CJS/UMD package checks after build
 npm run studio:build    # bundle + minify + scripts/build-studio.mjs -> dist/studio/ (catalog.json, vendor/milsymbol.js)
 npm run studio:serve    # static server for dist/studio on http://127.0.0.1:4173 (PORT env overrides)
+```
+
+The React editor in `app/` has its own package. Run these inside `app/`:
+
+```bash
+npm install             # app/ dependencies only; the root package stays dependency-free
+npm run data            # scripts/build-studio.mjs --data public -> catalog.json, flags.json, licenses (not in git)
+npm start               # data + webpack-dev-server on http://localhost:3008
+npm run build           # data + production build -> app/build/
+IWC=hwf npm run build   # IWC is hap (default) or hwf, written into the bundle by DefinePlugin
 ```
 
 ```bash
@@ -78,7 +88,16 @@ Style: Prettier with `trailingComma: "none"`; ESLint requires semicolons and `pr
 - Copies `src/modifierprofiles/` (APP-6A and `common.js`) to `vendor/modifierprofiles/` and `studio/profiles/` to `profiles/`, with `profiles/common.js` rewritten to re-export the vendored helpers. Both folders are cleared first.
 - Preserves the library and three catalog packages' complete licenses in the generated site. `npm run studio:build:public` uses allow-listed `dist/studio-public/`, excluding local PDF audits and hiding their link. It does not deploy.
 
-Because the studio loads the bundled library, library changes are invisible in the studio until `npm run studio:build` runs again. `.openai/hosting.json` serves `dist/studio` statically.
+Because the studio loads the bundled library, library changes are invisible in the studio until `npm run studio:build` runs again.
+
+### React editor (`app/`)
+
+`app/` is the same editor in React 18 + JSX, built with Webpack 5 and Babel 7, using MUI components with Emotion. GitHub Pages still publishes the vanilla `studio/`.
+- The app imports the library from `../index.js` (so it needs no `studio:build`) and the editor rules from the plain `studio/` modules. The vanilla app's `./vendor/...` imports correspond to `src/lettersidc/metadata.js` and `src/modifierprofiles/app6a.js`.
+- `app/src/editor/store.js` replaces the logic of `studio/app.js`. It is one React-independent store: state, control values (`controls`), the disabled map and a computed `view`, with no state kept in the DOM. It takes `ms`, `catalog` and `storage` as parameters. Each action commits a new snapshot, and components subscribe with `useSyncExternalStore` (`app/src/hooks.js`). One-time UI requests such as focus or scroll go through `signals`, which `useSignal` handles.
+- Drafts keep the vanilla format and `symbol-studio:*` keys and must pass `validDraft` in `studio/draft-store.js`.
+- `app/public/config.json` and `lang.json` are fetched at run time. `lang.json` holds only the components' fixed texts; editor messages come from the store. The UI stays English.
+- `test/app-editor-store.test.mjs` (node:test, part of `npm run test:node`) runs the store against a catalog built with `--data`. `npm run lint` covers `app/src` with JSX enabled. `.openai/hosting.json` serves `dist/studio` statically.
 
 ## Releasing (from dev/README.md)
 

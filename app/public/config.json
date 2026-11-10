@@ -1,0 +1,12 @@
+{
+  "catalogUrl": "catalog.json",
+  "flagsUrl": "flags.json",
+  "licensesUrl": "THIRD_PARTY_LICENSES.txt",
+  "langUrl": "lang.json",
+  "sourceUrl": "https://github.com/omcoskun/milsymbol",
+  "milsymbolUrl": "https://github.com/spatialillusions/milsymbol",
+  "byIwc": {
+    "hap": {},
+    "hwf": {}
+  }
+}

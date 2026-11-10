@@ -25,7 +25,10 @@ import {
   gridChoice,
   designationNotes,
   amplifierNotes,
-  countryFlagNote
+  countryFlagNote,
+  searchRank,
+  rankSearch,
+  withoutRawCode
 } from "../studio/editor-helpers.js";
 import { patchSidc, probeOffers } from "../studio/profile-controls.js";
 import { std2525eProfile } from "../studio/profiles/std2525e.js";
@@ -657,6 +660,27 @@ export default {
       amplifierNotes({ disabled: ["Mobility"], edition: "MIL-STD-2525C Table IV", placement: "" }).reason,
       "MIL-STD-2525C Table IV offers no mobility amplifier for this symbol."
     ]
+  },
+  "search results are ranked by how the name fits": {
+    "the name itself comes first": [searchRank({ name: "TANK" }, "tank"), 0],
+    "then a name that starts with the word": [searchRank({ name: "TANK LIGHT" }, "tank"), 1],
+    "then the word inside the name": [searchRank({ name: "MISSILE LAUNCHERS ANTI TANK (AT)" }, "tank"), 2],
+    "then a name that starts with the text": [searchRank({ name: "TANKER" }, "tank"), 3],
+    "then a word that starts with the text": [searchRank({ name: "OILER/TANKER" }, "tank"), 4],
+    "then the text inside a word": [searchRank({ name: "ANTITANK GUN" }, "tank"), 5],
+    "a match outside the name is last": [searchRank({ name: "INFANTRY" }, "ground"), 6],
+    "accents and case do not matter": [searchRank({ name: "Café" }, "CAFE"), 0],
+    "TANK is listed before TANKER, and equal ranks keep their order": [
+      rankSearch([{ name: "TANKER" }, { name: "ANTITANK GUN" }, { name: "TANK" }, { name: "TANK LIGHT" }, { name: "TANK MEDIUM" }], "tank").map((icon) => icon.name),
+      ["TANK", "TANK LIGHT", "TANK MEDIUM", "TANKER", "ANTITANK GUN"]
+    ],
+    "no search keeps the list": [rankSearch([{ name: "B" }, { name: "A" }], " ").map((icon) => icon.name), ["B", "A"]]
+  },
+  "a raw code of an applied SIDC does not follow to another standard": {
+    "the echelon code is dropped": [withoutRawCode("code:99"), ""],
+    "the status falls back": [withoutRawCode("code:9", "present"), "present"],
+    "a listed value stays": [withoutRawCode("battalion"), "battalion"],
+    "an empty value stays": [withoutRawCode(""), ""]
   },
   "the country note": {
     "says how to choose a flag": [

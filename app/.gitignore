@@ -1,0 +1,7 @@
+node_modules/
+build/
+# Written by `npm run data` (scripts/build-studio.mjs --data public).
+public/catalog.json
+public/flags.json
+public/LICENSE.txt
+public/THIRD_PARTY_LICENSES.txt

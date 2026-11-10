@@ -280,6 +280,40 @@ export function matchesSearch(icon, search, family) {
   ).includes(term);
 }
 
+// How well a text search fits a row's name, best first: the name itself, a name
+// that starts with the searched words, the words inside the name, a name or a
+// word that starts with the text, the text anywhere in the name, and last a
+// match in the set, code or path only. "tank" lists TANK before TANKER.
+export function searchRank(icon, search) {
+  const term = normalize(search).trim();
+  const name = normalize(icon.name);
+  if (!term || name === term) return 0;
+  const edge = (index) => index < 0 || index >= name.length || !/[a-z0-9]/.test(name[index]);
+  let rank = 6;
+  for (let at = name.indexOf(term); at >= 0; at = name.indexOf(term, at + 1)) {
+    const starts = edge(at - 1);
+    const ends = edge(at + term.length);
+    rank = Math.min(rank, at === 0 && ends ? 1 : starts && ends ? 2 : at === 0 ? 3 : starts ? 4 : 5);
+  }
+  return rank;
+}
+
+// Search results in the order of searchRank(); rows of one rank keep the
+// catalogue order. Without a search the list is returned as it is.
+export function rankSearch(icons, search) {
+  if (!normalize(search).trim()) return icons;
+  return icons
+    .map((icon) => [searchRank(icon, search), icon])
+    .sort((a, b) => a[0] - b[0])
+    .map(([, icon]) => icon);
+}
+
+// "code:XX" is a value an applied SIDC carried that the edition does not list.
+// It belongs to that SIDC: a new standard starts from the fallback, because a
+// numeric code does not fit a letter SIDC ("99" where one letter goes).
+export const withoutRawCode = (value, fallback = "") =>
+  String(value).startsWith("code:") ? fallback : value;
+
 // A publication can print one code on several rows: APP-6(B) gives UCEC-- to
 // Engineer Combat and its bridging, mine and diving rows, 2525C lists Hospital
 // under two branches. The palette selects by id, so each row needs its own:

@@ -11,8 +11,13 @@ import { correctApp6bEntries, distinctEntries, legacyDefaultModifier } from "../
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = path.join(root, "studio");
 const publicBuild = process.argv.includes("--public");
+// --data <directory> writes only what an editor fetches at run time (the
+// catalog, the flags and the license notices): the React app in app/ uses it.
+const dataIndex = process.argv.indexOf("--data");
+const dataDirectory = dataIndex < 0 ? "" : path.resolve(process.argv[dataIndex + 1] || "");
+if (dataIndex >= 0 && !process.argv[dataIndex + 1]) throw new Error("--data needs a directory");
 // Public builds use a separate, allow-listed output; never copy local PDF audits.
-const output = path.join(root, "dist", publicBuild ? "studio-public" : "studio");
+const output = dataDirectory || path.join(root, "dist", publicBuild ? "studio-public" : "studio");
 
 const isSelectable = (value = "") => {
   const normalized = String(value).toLowerCase();
@@ -186,18 +191,22 @@ const data = {
   }
 };
 
-fs.mkdirSync(path.join(output, "vendor"), { recursive: true });
+// The build owns vendor/ and profiles/: copies from an earlier build are
+// removed first. Everything else in the output (local audits) is left alone.
+if (!dataDirectory) for (const directory of ["vendor", "profiles"]) fs.rmSync(path.join(output, directory), { recursive: true, force: true });
+fs.mkdirSync(dataDirectory ? output : path.join(output, "vendor"), { recursive: true });
 const studioAssets = ["index.html", "styles.css", "app.js", "draft-store.js", "info-popover.js", "modifier-fields.js", "sidc-editor.js", "country-flags.js", "glyph-picker.js", "country-codes.js", "country-code-data.js", "editor-helpers.js", "field-reference.js", "field-guide.js", "identities.js", "profile-controls.js", "edition-check.js", "favicon.svg"];
-for (const file of studioAssets) {
+for (const file of dataDirectory ? [] : studioAssets) {
   if (file === "index.html") {
     const html = fs.readFileSync(path.join(source, file), "utf8");
     fs.writeFileSync(path.join(output, file), html.replace('<html lang="en">', `<html lang="en" data-local-audit="${!publicBuild}">`));
   } else fs.copyFileSync(path.join(source, file), path.join(output, file));
 }
-fs.copyFileSync(
-  path.join(root, "dist", "milsymbol.js"),
-  path.join(output, "vendor", "milsymbol.js")
-);
+if (!dataDirectory)
+  fs.copyFileSync(
+    path.join(root, "dist", "milsymbol.js"),
+    path.join(output, "vendor", "milsymbol.js")
+  );
 fs.writeFileSync(path.join(output, "catalog.json"), JSON.stringify(data));
 // Bundle SVG artwork locally so exports remain self-contained and work offline.
 const flagDirectory = path.join(root, "node_modules", "flag-icons");
@@ -212,10 +221,10 @@ const flags = flagArtwork.map(({code, name, svg}) => {
     return { code, name, svg };
   }).sort((a, b) => a.name.localeCompare(b.name, "en"));
 fs.writeFileSync(path.join(output, "flags.json"), JSON.stringify(flags));
+if (!dataDirectory) copyModules();
 // The APP-6A profile is shared with the library; keep its relative imports
-// intact by mirroring src/ under vendor/. The build owns vendor/modifierprofiles
-// and profiles/, so stale copies from an earlier build are removed first.
-for (const directory of [path.join("vendor", "modifierprofiles"), "profiles"]) fs.rmSync(path.join(output, directory), { recursive: true, force: true });
+// intact by mirroring src/ under vendor/.
+function copyModules() {
 for (const directory of ["lettersidc", "modifierprofiles"]) fs.mkdirSync(path.join(output, "vendor", directory), { recursive: true });
 fs.copyFileSync(path.join(root, "src", "lettersidc", "metadata.js"), path.join(output, "vendor", "lettersidc", "metadata.js"));
 for (const file of fs.readdirSync(path.join(root, "src", "modifierprofiles")).filter((name) => name.endsWith(".js")))
@@ -227,9 +236,10 @@ fs.mkdirSync(path.join(output, "profiles"), { recursive: true });
 for (const file of fs.readdirSync(path.join(source, "profiles")).filter((name) => name.endsWith(".js")))
   fs.copyFileSync(path.join(source, "profiles", file), path.join(output, "profiles", file));
 fs.writeFileSync(path.join(output, "profiles", "common.js"), 'export * from "../vendor/modifierprofiles/common.js";\n');
+}
 fs.copyFileSync(path.join(root, "LICENSE"), path.join(output, "LICENSE.txt"));
 const notices = [
-  "Military Symbol Studio — independent modified version of milsymbol.\nNot an official Spatial Illusions or NATO product.\nAPP-6A support is partial; no full-conformance certification is claimed.",
+  "Military Symbol Editor — independent modified version of milsymbol.\nNot an official Spatial Illusions or NATO product.\nAPP-6A support is partial; no full-conformance certification is claimed.",
   "milsymbol — https://github.com/spatialillusions/milsymbol\n\n" + fs.readFileSync(path.join(root, "LICENSE"), "utf8"),
   fs.readFileSync(path.join(source, "flags", "NOTICE.txt"), "utf8"),
   ...["mil-std-2525", "milstandard-e", "stanag-app6", "flag-icons"].map(name => {
@@ -255,5 +265,5 @@ if (publicBuild) {
 const summary = Object.entries(data.standards)
   .map(([key, value]) => `${key}: ${value.icons.length}`)
   .join(", ");
-console.log(`Symbol Studio built at ${output}`);
+console.log(`Military Symbol Editor built at ${output}`);
 console.log(`Catalog entries — ${summary}`);

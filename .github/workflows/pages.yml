@@ -1,4 +1,4 @@
-name: Deploy Military Symbol Studio
+name: Deploy Military Symbol Editor
 
 on:
   push:

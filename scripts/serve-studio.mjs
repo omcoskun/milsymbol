@@ -17,4 +17,4 @@ createServer((request, response) => {
   }
   response.writeHead(200, { "Content-Type": mime[path.extname(candidate)] || "application/octet-stream", "Cache-Control": "no-store" });
   fs.createReadStream(candidate).pipe(response);
-}).listen(port, "127.0.0.1", () => console.log(`Symbol Studio: http://127.0.0.1:${port}`));
+}).listen(port, "127.0.0.1", () => console.log(`Military Symbol Editor: http://127.0.0.1:${port}`));

@@ -2,7 +2,7 @@
 
 > This checkout contains an independent modification of
 > [Spatial Illusions' milsymbol](https://github.com/spatialillusions/milsymbol),
-> including Military Symbol Studio and partial APP-6A support. It is not an
+> including Military Symbol Editor and partial APP-6A support. It is not an
 > official Spatial Illusions or NATO release. See [STUDIO.md](STUDIO.md) for
 > local use, publication packaging, and attribution.
 >
@@ -13,14 +13,14 @@
 
 ## Acknowledgements
 
-[Open Military Symbol Studio](https://omcoskun.github.io/milsymbol/) ·
+[Open Military Symbol Editor](https://omcoskun.github.io/milsymbol/) ·
 [Studio documentation](STUDIO.md)
 
 Many thanks to **Måns Beckman / Spatial Illusions**, the creator of
 [milsymbol](https://github.com/spatialillusions/milsymbol), for building and
 sharing this excellent military symbology library under the MIT license.
 
-Military Symbol Studio is built on his work. This project extends the original
+Military Symbol Editor is built on his work. This project extends the original
 milsymbol library with a browser-based symbol editor, standard and modifier
 selection, and partial APP-6A support. The underlying rendering architecture
 and much of the symbol implementation come from milsymbol and its contributors;

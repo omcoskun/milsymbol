@@ -37,7 +37,7 @@ import {
   editorGaps
 } from "./profile-controls.js";
 
-import { exportFilename, pngOutputSize, pngScale, fieldStates, profileFieldStates, dtgForField, evaluationRating, sidcParts, pushRecent, placeholderOptions, undrawnFieldKeys, readTextRows, fieldValueChars, fitRowWidths, layoutFieldBoxes, paletteProgress, baseBranch, entryCrumbs, groupEntries, paletteSections, matchesSearch, normalize, mobilities, mobilityModeName, amplifierChoice, amplifierPlacementNote, sharedViewBox, withViewBox, modifierColorUnused, modifierChoice, centeredGlyphs, frameShapeChoice, problemReasons, gridChoice, designationNotes, amplifierNotes, countryFlagNote } from "./editor-helpers.js";
+import { exportFilename, pngOutputSize, pngScale, fieldStates, profileFieldStates, dtgForField, evaluationRating, sidcParts, pushRecent, placeholderOptions, undrawnFieldKeys, readTextRows, fieldValueChars, fitRowWidths, layoutFieldBoxes, paletteProgress, baseBranch, entryCrumbs, groupEntries, paletteSections, matchesSearch, normalize, mobilities, mobilityModeName, amplifierChoice, amplifierPlacementNote, sharedViewBox, withViewBox, modifierColorUnused, modifierChoice, centeredGlyphs, frameShapeChoice, problemReasons, gridChoice, designationNotes, amplifierNotes, countryFlagNote, rankSearch, withoutRawCode } from "./editor-helpers.js";
 import { createGlyphPicker } from "./glyph-picker.js";
 import { createDraftAutosave, createDraftStore, draftStateKeys, sameDraft } from "./draft-store.js";
 import { setupInfoPopovers } from "./info-popover.js";
@@ -745,6 +745,9 @@ function setStandard(id) {
   state.modifier2 = "";
   state.customSidc = "";
   state.importedIcon = null;
+  // A raw code kept from an applied SIDC goes with that SIDC (editor-helpers.js).
+  state.status = withoutRawCode(state.status, "present");
+  state.amplifierValue = withoutRawCode(state.amplifierValue);
   if (id === "app6a" && !["present", "planned"].includes(state.status))
     state.status = "present";
   window.ms.setStandard(next.standard);
@@ -804,7 +807,7 @@ function symbolCard(icon, { inSection = false } = {}) {
     <button type="button" class="symbol-card ${icon.id === state.selectedId ? "active" : ""}" aria-pressed="${icon.id === state.selectedId}" data-symbol-id="${escapeHtml(icon.id)}" title="${escapeHtml(icon.name + (icon.categoryOnly ? " — Category: no separate illustration in APP-6A" : ""))}">
       <span class="mini-symbol">${safeMiniSvg(icon)}</span>
       <strong>${escapeHtml(icon.name)}${icon.categoryOnly ? ' <span class="category-badge">Category</span>' : ""}</strong>
-      <small>${inSection ? "" : `<span class="card-category">${escapeHtml(icon.category)}</span><span aria-hidden="true">·</span>`}<span class="card-code">${escapeHtml(icon.code)}</span></small>
+      <small>${inSection ? "" : `<span class="card-category">${escapeHtml(icon.category)}</span>`}<span class="card-code">${escapeHtml(icon.code)}</span></small>
     </button>`;
 }
 
@@ -829,9 +832,10 @@ function closeSearch() {
 }
 
 function filteredIcons() {
-  return dataset().icons.filter((icon) =>
+  const icons = dataset().icons.filter((icon) =>
     (state.category === "all" || icon.category === state.category) && matchesSearch(icon, state.search, config().family)
   );
+  return rankSearch(icons, state.search);
 }
 
 function safeMiniSvg(icon) {
@@ -3279,6 +3283,12 @@ function bindEvents() {
     copyText(copiedSidc({ shown: dom.sidcInput.value, sidc: state.customSidc || buildSidc(), dirty: state.sidcDirty }), "SIDC copied")
   );
   dom.compactCopy.addEventListener("click", () => dom.copySidc.click());
+  // Narrow, #previewPanel is display: contents and has no box to scroll to, so
+  // the small preview in the tab bar goes to the preview card itself.
+  document.getElementById("compactPreview").addEventListener("click", (event) => {
+    event.preventDefault();
+    document.querySelector(".preview-card").scrollIntoView({ block: "start" });
+  });
   dom.downloadSvg.addEventListener(
     "click",
     () => currentSvg && download(currentSvg, exportName("svg"), "image/svg+xml")

@@ -1,0 +1,32 @@
+{
+  "name": "military-symbol-editor-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Military Symbol Editor in React. Uses the milsymbol library in ../ and the editor rules in ../studio.",
+  "type": "module",
+  "scripts": {
+    "data": "node ../scripts/build-studio.mjs --data public",
+    "prestart": "npm run data",
+    "start": "webpack serve --mode development",
+    "prebuild": "npm run data",
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.1",
+    "@mui/material": "9.5.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.13",
+    "@babel/preset-env": "7.29.7",
+    "@babel/preset-react": "7.29.7",
+    "babel-loader": "10.1.1",
+    "copy-webpack-plugin": "14.0.0",
+    "html-webpack-plugin": "5.6.8",
+    "webpack": "5.112.2",
+    "webpack-cli": "6.0.1",
+    "webpack-dev-server": "5.2.7"
+  }
+}
