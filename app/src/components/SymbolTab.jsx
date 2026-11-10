@@ -38,13 +38,13 @@ function Chip({ chip, status, onChoose }) {
         alignItems: "center",
         justifyContent: status ? "flex-start" : "center",
         gap: status ? 1.25 : 0.75,
-        minHeight: status ? 54 : 96,
-        px: status ? 1.25 : 0.75,
+        minHeight: status ? 54 : { xs: 84, sm: 96 },
+        px: status ? 1.25 : { xs: 0.5, sm: 0.75 },
         py: status ? 0.75 : 1,
         border: `1.5px solid ${tokens.lineStrong}`,
         borderRadius: 2.5,
         bgcolor: tokens.panel,
-        fontSize: 14,
+        fontSize: status ? 14 : { xs: 13, sm: 14 },
         fontWeight: 500,
         lineHeight: 1.2,
         textAlign: status ? "left" : "center",
@@ -56,7 +56,7 @@ function Chip({ chip, status, onChoose }) {
         className="chip-glyph"
         svg={chip.glyph}
         aria-hidden="true"
-        sx={status ? { flex: "none", width: 56, height: 40, p: "3px" } : { flex: "none", width: "clamp(76px, 40cqi - 10px, 112px)", aspectRatio: "76 / 54", p: "3px" }}
+        sx={status ? { flex: "none", minHeight: 0, width: 56, height: 40, p: "3px" } : { flex: "none", minHeight: 0, maxWidth: "100%", width: { xs: 60, sm: "clamp(76px, 40cqi - 10px, 112px)" }, height: { xs: 46, sm: "auto" }, aspectRatio: "76 / 54", p: "3px" }}
       />
       <Box component="span" sx={{ minWidth: 0, overflowWrap: "anywhere" }}>
         {chip.label}
@@ -70,8 +70,8 @@ function Chip({ chip, status, onChoose }) {
   );
 }
 
-const ChipGrid = ({ chips, status = false, onChoose }) => (
-  <Box sx={{ display: "grid", gap: 0.75, gridTemplateColumns: status ? "repeat(auto-fill, minmax(180px, 1fr))" : "repeat(4, minmax(0, 1fr))" }}>
+const ChipGrid = ({ chips, status = false, secondary = false, onChoose }) => (
+  <Box sx={{ display: "grid", gap: 0.75, gridTemplateColumns: status ? { xs: "minmax(0, 1fr)", sm: "repeat(auto-fill, minmax(180px, 1fr))" } : { xs: `repeat(${secondary ? 2 : 4}, minmax(0, 1fr))`, sm: "repeat(4, minmax(0, 1fr))" } }}>
     {chips.map((chip) => (
       <Chip key={chip.value} chip={chip} status={status} onChoose={onChoose} />
     ))}
@@ -159,7 +159,7 @@ function DesignationToggle({ id, label }) {
   );
 }
 
-const fieldLabel = { display: "flex", flexDirection: "column", gap: 0.75, minWidth: 0, fontSize: 14, fontWeight: 500 };
+const fieldLabel = { display: "flex", flexDirection: "column", gap: 0.75, minWidth: 0, fontSize: 14, fontWeight: 500, lineHeight: "normal" };
 
 export default function SymbolTab() {
   const store = useStore();
@@ -190,7 +190,7 @@ export default function SymbolTab() {
                   {view.chips.moreSelection}
                 </Box>
               </summary>
-              <ChipGrid chips={view.chips.secondary} onChoose={(value) => store.chooseIdentity(value)} />
+              <ChipGrid chips={view.chips.secondary} secondary onChoose={(value) => store.chooseIdentity(value)} />
             </Box>
           ) : null}
         </Box>
@@ -265,7 +265,7 @@ export default function SymbolTab() {
               gap: "3px",
               borderRadius: 2,
               bgcolor: tokens.surfaceMuted,
-              "& .MuiToggleButton-root": { border: 0, borderRadius: "6px !important", minHeight: 30, py: 0.375, color: "text.secondary", fontSize: 14 },
+              "& .MuiToggleButton-root": { border: 0, borderRadius: "6px !important", minHeight: 30, py: 0.375, color: "text.secondary", fontSize: 14, [media.touch]: { minHeight: 44 } },
               "& .Mui-selected": { bgcolor: `${tokens.panel} !important`, color: "text.primary !important", boxShadow: "0 1px 2px #20364a1f" }
             }}
           >

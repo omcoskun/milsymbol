@@ -36,7 +36,7 @@ export default function InfoPopover({ id, title, children }) {
           color: "text.secondary",
           p: 0.5,
           // A finger needs a bigger target: the small round button takes the taps around it.
-          [media.touch]: { position: "relative", "&::after": { content: '""', position: "absolute", inset: "-11px" } }
+          [media.touch]: { minHeight: 44, position: "relative", "&::after": { content: '""', position: "absolute", inset: "-11px" } }
         }}
       >
         <InfoIcon sx={{ fontSize: 18 }} />

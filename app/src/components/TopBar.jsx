@@ -120,7 +120,7 @@ export default function TopBar() {
           <Link href={config.sourceUrl} target="_blank" rel="noreferrer" sx={{ display: { xs: "none", sm: "inline" }, fontSize: 14, whiteSpace: "nowrap" }}>
             {text("app.sourceCode")}
           </Link>
-          <Button variant="outlined" color="inherit" size="small" onClick={() => store.setHelpOpen(true)} sx={{ borderColor: tokens.lineStrong }}>
+          <Button color="inherit" size="small" onClick={() => store.setHelpOpen(true)} sx={{ minWidth: 0, p: "7px 12px", border: "1px solid transparent", fontSize: 14, lineHeight: "normal", color: "text.secondary", "&:hover": { bgcolor: tokens.surfaceMuted, color: "text.primary" } }}>
             {text("app.help")}
           </Button>
         </Box>

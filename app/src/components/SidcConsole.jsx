@@ -46,14 +46,22 @@ export default function SidcConsole({ onCopy }) {
   useLayoutEffect(() => {
     const node = box.current;
     let width = 0;
+    let frame = 0;
     const observer = new ResizeObserver(([entry]) => {
       if (entry.contentRect.width === width) return;
       width = entry.contentRect.width;
-      node.style.height = "auto";
-      node.style.height = `${node.scrollHeight + 2}px`;
+      // Changing the observed height during delivery queues another resize.
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        node.style.height = "auto";
+        node.style.height = `${node.scrollHeight + 2}px`;
+      });
     });
     observer.observe(node);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   return (

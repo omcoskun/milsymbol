@@ -16,7 +16,7 @@ Open `http://127.0.0.1:4173`.
 
 `app/` holds the same editor in React 18 (JSX, Webpack 5, Babel 7, MUI with
 Emotion). It has its own `package.json`; the root package stays free of
-runtime dependencies. GitHub Pages still publishes the vanilla `studio/`.
+runtime dependencies. GitHub Pages publishes the React build from `app/build/`.
 
 ```bash
 cd app
@@ -167,7 +167,11 @@ under MIT with its original copyright notice. The build includes their full
 license texts in `THIRD_PARTY_LICENSES.txt`, linked from the editor, and copies
 the original library license to `LICENSE.txt`.
 
-For a public site, run `npm run studio:build:public` and publish **only**
+For the public React editor, install the locked dependencies in the repository
+root and `app/`, run `npm run build --prefix app`, and publish **only**
+`app/build/`. The build includes the generated catalog, flags and license notices.
+
+To package the vanilla Studio, run `npm run studio:build:public` and publish **only**
 `dist/studio-public/`, not the local `dist/studio/` audit directory. This separate
 allow-listed build omits PDF reference images, audit snapshots and local hosting
 configuration. Its publication-audit link is hidden. Nothing is deployed by
@@ -175,9 +179,9 @@ this command.
 
 ### GitHub Pages
 
-The `.github/workflows/pages.yml` workflow runs the rendering tests, builds the
-public site, and deploys only `dist/studio-public/`. It runs on pushes to `main`
-and can also be started manually from the Actions tab. In the fork's
+The `.github/workflows/pages.yml` workflow runs the rendering tests, validates the
+vanilla public package, builds the React editor, and deploys only `app/build/`.
+It runs on pushes to `main` and can also be started manually from the Actions tab. In the fork's
 **Settings → Pages**, select **GitHub Actions** as the publishing source. Forks
 may also require enabling Actions before their first run.
 

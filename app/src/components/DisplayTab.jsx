@@ -129,8 +129,8 @@ export default function DisplayTab() {
           <Note text={text("display.displayNote")} />
         </CardSection>
 
-        <CardSection title={text("display.style")}>
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px 16px" }}>
+        <CardSection title={text("display.style")} sx={{ borderTop: { xs: 1, sm: 0 }, borderColor: "divider", pt: { xs: 2, sm: 0 } }}>
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }, gap: "14px 16px" }}>
             <Range id="symbolSize" label={text("display.symbolSize")} output={`${controls.symbolSize}%`} value={controls.symbolSize} min={55} max={170} onChange={set("symbolSize")} describedBy="symbolSizeNote" />
             <Range id="strokeWidth" label={text("display.strokeWidth")} output={controls.strokeWidth} value={controls.strokeWidth} min={1} max={8} step={0.5} onChange={set("strokeWidth")} />
             <Select id="colorMode" label={text("display.colorPalette")} value={controls.colorMode} options={lists.colorMode} onChange={set("colorMode")} />

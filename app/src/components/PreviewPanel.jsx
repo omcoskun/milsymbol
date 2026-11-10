@@ -125,7 +125,7 @@ function SelectedPath() {
   );
 }
 
-const pill = (color, bgcolor) => ({ fontSize: 12, fontWeight: 600, color, bgcolor, borderRadius: 999, px: 1.1, py: 0.25, whiteSpace: "nowrap" });
+const pill = (color, bgcolor) => ({ fontSize: 12, lineHeight: "normal", fontWeight: 600, color, bgcolor, borderRadius: 999, px: 1.1, py: 0.25, whiteSpace: "nowrap" });
 
 export default function PreviewPanel() {
   const store = useStore();
@@ -185,7 +185,7 @@ export default function PreviewPanel() {
         <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1.25 }}>
           <Box sx={{ minWidth: 0 }}>
             <SelectedPath />
-            <Typography component="h1" sx={{ fontSize: { xs: 15, md: 20 }, fontWeight: 700, lineHeight: 1.25, overflowWrap: "anywhere" }}>
+            <Typography component="h1" sx={{ fontSize: { xs: 15, md: 20 }, fontWeight: 600, letterSpacing: "-0.3px", lineHeight: 1.3, overflowWrap: "anywhere" }}>
               {view.selectedName}
             </Typography>
           </Box>
@@ -199,7 +199,7 @@ export default function PreviewPanel() {
             <Box
               component="span"
               title={view.renderState.title}
-              sx={{ display: "inline-flex", alignItems: "center", gap: 0.75, fontSize: 12, whiteSpace: "nowrap", color: view.renderState.valid ? "text.secondary" : tokens.danger }}
+              sx={{ display: "inline-flex", alignItems: "center", gap: 0.75, fontSize: 12, lineHeight: "normal", whiteSpace: "nowrap", color: view.renderState.valid ? "text.secondary" : tokens.danger }}
             >
               <Box component="i" sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: view.renderState.valid ? "#34a36b" : "#d24b42" }} />
               {view.renderState.text}
@@ -211,7 +211,7 @@ export default function PreviewPanel() {
         <Box
           component="p"
           className="compact-code"
-          sx={{ display: { xs: "block", md: "none" }, m: 0, overflow: "hidden", color: tokens.textSoft, fontFamily: tokens.mono, fontSize: 12, textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          sx={{ display: { xs: "block", md: "none" }, m: 0, overflow: "hidden", color: tokens.textSoft, fontFamily: tokens.mono, fontSize: 12, lineHeight: "14px", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
         >
           {controls.sidcInput}
         </Box>
@@ -246,7 +246,7 @@ export default function PreviewPanel() {
           >
             {text("preview.copy")}
           </Button>
-          <ButtonGroup variant="text" role="group" aria-label={text("preview.downloadAria")} sx={{ justifySelf: "end" }}>
+          <ButtonGroup variant="text" role="group" aria-label={text("preview.downloadAria")} sx={{ justifySelf: "end", "& .MuiButton-root": { border: 0 } }}>
             <Button
               aria-label={view.pngLabel}
               title={view.pngTitle}

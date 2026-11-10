@@ -251,7 +251,7 @@ function PaletteBody({ palette, search }) {
               display: "flex",
               flexDirection: { xs: "row", sm: "column" },
               gap: "2px",
-              p: { xs: 1, sm: "10px 8px" },
+              p: "10px 8px",
               borderRight: { sm: `1px solid ${tokens.lineSoft}` },
               borderBottom: { xs: `1px solid ${tokens.lineSoft}`, sm: 0 },
               bgcolor: tokens.surfaceFaint,
@@ -345,7 +345,7 @@ function PaletteBody({ palette, search }) {
           <span>
             <Box component="kbd" sx={kbd}>Esc</Box> {text("palette.clearClose")}
           </span>
-          <Box component="span" sx={{ ml: { sm: "auto" } }}>
+          <Box component="span" sx={{ display: { xs: "none", sm: "inline" }, ml: { sm: "auto" } }}>
             {text("palette.note")}
           </Box>
         </Box>
@@ -386,6 +386,7 @@ export default function PaletteDialog() {
             m: 0,
             display: "flex",
             flexDirection: "column",
+            lineHeight: "normal",
             width: { xs: "calc(100vw - 24px)", md: "min(1240px, calc(100vw - 48px))" },
             maxWidth: "none",
             maxHeight: "calc(100dvh - 20px)",

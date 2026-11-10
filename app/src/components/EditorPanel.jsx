@@ -75,7 +75,7 @@ export default function EditorPanel() {
           aria-label={text("editor.tabsAria")}
           variant="scrollable"
           scrollButtons={false}
-          sx={{ minHeight: 50, "& .MuiTab-root": { minHeight: 50, px: { xs: "9px", sm: 1.5 }, fontSize: 15, color: "text.secondary" }, "& .Mui-selected": { color: `${tokens.blueDark} !important` } }}
+          sx={{ minHeight: 50, mb: "-1px", "& .MuiTab-root": { minHeight: 50, minWidth: 0, px: { xs: "9px", sm: 1.5 }, fontSize: 15, color: "text.secondary" }, "& .Mui-selected": { color: `${tokens.blueDark} !important` } }}
         >
           {panels.map(([id, label]) => (
             <Tab

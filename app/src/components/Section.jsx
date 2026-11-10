@@ -15,7 +15,7 @@ export function CardSection({ title, titleId, info, infoId, aside, children, div
     >
       <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 1.25, minHeight: 22 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 0 }}>
-          <Typography component="h3" id={titleId} sx={{ fontSize: 15, fontWeight: 700 }}>
+          <Typography component="h3" id={titleId} sx={{ fontSize: 15, fontWeight: 600, lineHeight: "normal" }}>
             {title}
           </Typography>
           {info ? (
@@ -56,7 +56,7 @@ export function Note({ text, warn = false, role, id }) {
       role={role}
       sx={{
         fontSize: 13,
-        lineHeight: 1.45,
+        lineHeight: 1.5,
         color: warn ? tokens.warn : "text.secondary",
         ...(warn ? { bgcolor: tokens.warnBg, borderRadius: 1, px: 1, py: 0.5 } : {})
       }}
