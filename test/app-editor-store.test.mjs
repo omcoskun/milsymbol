@@ -296,3 +296,39 @@ test("headquarters, task force and feint share position 11 with a letter SIDC's 
     assert.equal(store.sidc().slice(10, 12), "B-", standard);
   }
 });
+
+test("a condition bar does not hide the headquarters staff in its switch picture", () => {
+  // Where the staff ends, and where the drawing under the frame (the bar) ends.
+  const staffEnd = (svg) => Number(/d="M[\d.-]+,[\d.-]+ L[\d.-]+,([\d.-]+)"[^>]*milsymbol-headquarters/.exec(svg)[1]);
+  const barBottom = (svg) => {
+    const bar = /d="M[\d.-]+,([\d.-]+) l[\d.-]+,0 0,25 /.exec(svg);
+    return bar ? Number(bar[1]) + 25 : null;
+  };
+  const cases = [
+    ["2525c", "SFACMFP--------"],
+    ["2525c", "SFGCUCI--------"],
+    ["2525c", "SHGXUCI--------"],
+    ["app6b", "SFGDUCI--------"],
+    ["2525d", "10031020001211000000"],
+    ["app6d", "10061050001211000000"]
+  ];
+  for (const [standard, sidc] of cases) {
+    const store = editor();
+    store.setStandard(standard);
+    store.setSidcInput(sidc);
+    store.applySidc();
+    const glyph = store.getSnapshot().view.designationGlyphs.hq;
+    const bottom = barBottom(glyph);
+    assert.notEqual(bottom, null, `${standard} ${sidc} draws a condition bar`);
+    // The same short staff as on a frame without a bar: 40 units past what hangs under it.
+    assert.equal(staffEnd(glyph) - bottom, 40, `${standard} ${sidc}`);
+  }
+  // Without a bar the staff keeps its 40 units below the frame.
+  const store = editor();
+  store.setStandard("2525c");
+  store.setSidcInput("SFAPMFP--------");
+  store.applySidc();
+  const glyph = store.getSnapshot().view.designationGlyphs.hq;
+  assert.equal(barBottom(glyph), null);
+  assert.equal(staffEnd(glyph), 190);
+});

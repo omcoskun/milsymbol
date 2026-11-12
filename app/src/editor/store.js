@@ -63,6 +63,7 @@ import {
   modifierColorUnused,
   modifierChoice,
   centeredGlyphs,
+  belowFrame,
   frameShapeChoice,
   problemReasons,
   gridChoice,
@@ -1611,9 +1612,26 @@ export function createEditorStore({
     return chipCache.get(key);
   }
 
+  // How far the bare symbol reaches below its frame, kept with the chip pictures.
+  function chipBelowFrame(sidc) {
+    const key = `below|${state.standardId}|${sidc}`;
+    if (!chipCache.has(key)) {
+      let below = 0;
+      try {
+        below = belowFrame(drawSymbol(sidc, { ...currentOptions(true), infoFields: false }));
+      } catch {
+        below = 0;
+      }
+      chipCache.set(key, below);
+    }
+    return chipCache.get(key);
+  }
+
   const designationCodes = { feintDummy: 1, hq: 2, taskForce: 4 };
+  // The thumbnails draw a short staff: 40 units past whatever hangs under the frame.
+  // A condition bar sits there, and a staff of 40 from the frame ended behind it.
   function renderDesignationGlyphs(base, modern) {
-    const options = { size: 30, hqStaffLength: 40 };
+    const options = { size: 30, hqStaffLength: 40 + chipBelowFrame(base) };
     const svgs = Object.values(designationCodes).map((code) => {
       if (modern) return chipSvg(`${base.slice(0, 7)}${code}${base.slice(8)}`, options);
       const amplifier = base[10] === "H" ? `H${code === 1 ? "B" : "-"}` : `${legacyFlagLetters[code]}-`;

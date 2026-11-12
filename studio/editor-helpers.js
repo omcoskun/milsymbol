@@ -889,6 +889,16 @@ export function centeredGlyphs(svgs) {
   });
 }
 
+// How far a drawn symbol reaches below its frame: the condition bar of fully capable,
+// damaged, destroyed and full to capacity, for example. A headquarters staff starts at
+// the frame, so a short one ends behind the bar unless it is longer by this much.
+export function belowFrame(symbol) {
+  const frameBottom = symbol?.metadata?.baseGeometry?.bbox?.y2;
+  const bottom = symbol?.bbox?.y2;
+  if (!Number.isFinite(frameBottom) || !Number.isFinite(bottom)) return 0;
+  return Math.max(0, bottom - frameBottom);
+}
+
 export function withViewBox(svg, box) {
   if (!svg || !box) return svg;
   return svg.replace(/<svg\b[^>]*>/, (tag) =>

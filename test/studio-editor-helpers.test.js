@@ -20,6 +20,7 @@ import {
   modifierColorUnused,
   modifierChoice,
   centeredGlyphs,
+  belowFrame,
   frameShapeChoice,
   problemReasons,
   gridChoice,
@@ -465,6 +466,16 @@ export default {
     ],
     "a frame that failed to draw stays empty": [centeredGlyphs(frames)[2], ""],
     "a list with nothing drawn stays empty": [centeredGlyphs(["", ""]), ["", ""]],
+    "a condition bar 5 units under the frame and 25 tall reaches 30 below it": [
+      belowFrame({ bbox: { y2: 180 }, metadata: { baseGeometry: { bbox: { y2: 150 } } } }),
+      30
+    ],
+    "a symbol drawn no lower than its frame reaches 0 below it": [
+      belowFrame({ bbox: { y2: 150 }, metadata: { baseGeometry: { bbox: { y2: 150 } } } }),
+      0
+    ],
+    "a symbol without a frame box reaches 0 below it": [belowFrame({ bbox: { y2: 180 }, metadata: {} }), 0],
+    "no symbol reaches 0 below its frame": [belowFrame(null), 0],
     "a row names the shape and its code": [
       frameShapeChoice({ value: "A", textContent: "Sea surface" }),
       { value: "A", name: "Sea surface", code: "A", reason: "" }

@@ -37,7 +37,7 @@ import {
   editorGaps
 } from "./profile-controls.js";
 
-import { exportFilename, pngOutputSize, pngScale, fieldStates, profileFieldStates, dtgForField, evaluationRating, sidcParts, pushRecent, placeholderOptions, undrawnFieldKeys, readTextRows, fieldValueChars, fitRowWidths, layoutFieldBoxes, paletteProgress, baseBranch, entryCrumbs, groupEntries, paletteSections, matchesSearch, normalize, mobilities, mobilityModeName, amplifierChoice, amplifierPlacementNote, sharedViewBox, withViewBox, modifierColorUnused, modifierChoice, centeredGlyphs, frameShapeChoice, problemReasons, gridChoice, designationNotes, amplifierNotes, countryFlagNote, rankSearch, withoutRawCode } from "./editor-helpers.js";
+import { exportFilename, pngOutputSize, pngScale, fieldStates, profileFieldStates, dtgForField, evaluationRating, sidcParts, pushRecent, placeholderOptions, undrawnFieldKeys, readTextRows, fieldValueChars, fitRowWidths, layoutFieldBoxes, paletteProgress, baseBranch, entryCrumbs, groupEntries, paletteSections, matchesSearch, normalize, mobilities, mobilityModeName, amplifierChoice, amplifierPlacementNote, sharedViewBox, withViewBox, modifierColorUnused, modifierChoice, centeredGlyphs, belowFrame, frameShapeChoice, problemReasons, gridChoice, designationNotes, amplifierNotes, countryFlagNote, rankSearch, withoutRawCode } from "./editor-helpers.js";
 import { createGlyphPicker } from "./glyph-picker.js";
 import { createDraftAutosave, createDraftStore, draftStateKeys, sameDraft } from "./draft-store.js";
 import { setupInfoPopovers } from "./info-popover.js";
@@ -2070,15 +2070,30 @@ function chipSvg(sidc, { size = 18, icon = true, modifierColor = "", hqStaffLeng
   return chipCache.get(key);
 }
 
+// How far the bare symbol reaches below its frame, kept with the chip pictures.
+function chipBelowFrame(sidc) {
+  const key = `below|${state.standardId}|${sidc}`;
+  if (!chipCache.has(key)) {
+    let below = 0;
+    try {
+      below = belowFrame(drawSymbol(sidc, { ...currentOptions(true), infoFields: false }));
+    } catch {}
+    chipCache.set(key, below);
+  }
+  return chipCache.get(key);
+}
+
 // Unit designation: each switch shows the current frame with its mark alone,
 // coded as flagCode() codes them (feint/dummy 1, headquarters 2, task force 4).
 // base is the SIDC without designation or amplifier, as renderChips() makes it.
 const designationCodes = { feintDummy: 1, hq: 2, taskForce: 4 };
 // The thumbnails draw a short staff (40 units instead of 100): at full length
 // the headquarters or location-offset staff is the tallest part and shrinks
-// every frame of the group to a few pixels.
+// every frame of the group to a few pixels. The 40 units count from whatever
+// hangs under the frame: a condition bar sits there, and a staff of 40 from
+// the frame ended behind it.
 function renderDesignationGlyphs(base, modern) {
-  const options = { size: 30, hqStaffLength: 40 };
+  const options = { size: 30, hqStaffLength: 40 + chipBelowFrame(base) };
   const svgs = Object.values(designationCodes).map((code) => {
     if (modern) return chipSvg(`${base.slice(0, 7)}${code}${base.slice(8)}`, options);
     // An installation keeps its H; only feint/dummy goes with it.
