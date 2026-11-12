@@ -22,7 +22,7 @@ const cardStyles = {
   justifyContent: "flex-start",
   gap: 0.75,
   minHeight: 136,
-  px: 1,
+  px: 0.75,
   pt: 1.5,
   pb: 1.25,
   border: `1.5px solid ${tokens.line}`,

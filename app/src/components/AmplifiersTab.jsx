@@ -12,7 +12,7 @@ import { FieldCode } from "./Section.jsx";
 import { computeFieldLayout } from "../editor/layout.js";
 import { useEditor, useSignal, useStore } from "../hooks.js";
 import { useText } from "../i18n.js";
-import { tokens } from "../theme.js";
+import { media, tokens } from "../theme.js";
 
 // Text width as the boxes draw it: a field name (12 px) or a code (12 px, 600).
 let measurer;
@@ -135,7 +135,22 @@ export default function AmplifiersTab({ active }) {
             aria-label={text("text.about")}
             title={text("text.about")}
             onClick={() => setInfoOpen(!infoOpen)}
-            sx={{ width: 22, height: 22, border: `1px solid ${tokens.lineStrong}`, fontSize: 12, fontWeight: 700, fontStyle: "italic", fontFamily: "Georgia, serif", color: infoOpen ? tokens.blueDark : "text.secondary", bgcolor: infoOpen ? tokens.softBlue : "transparent" }}
+            // info-button: the touch rule in App.jsx leaves the circle its size.
+            className="info-button"
+            sx={{
+              flex: "none",
+              width: 22,
+              height: 22,
+              border: `1px solid ${tokens.lineStrong}`,
+              fontSize: 12,
+              fontWeight: 700,
+              fontStyle: "italic",
+              fontFamily: "Georgia, serif",
+              color: infoOpen ? tokens.blueDark : "text.secondary",
+              bgcolor: infoOpen ? tokens.softBlue : "transparent",
+              // A small round button keeps its shape and takes the taps around it.
+              [media.touch]: { position: "relative", "&::after": { content: '""', position: "absolute", inset: "-11px" } }
+            }}
           >
             i
           </IconButton>

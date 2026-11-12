@@ -107,7 +107,7 @@ function SelectedPath() {
             <ButtonBase
               title={text("preview.showInPalette")}
               onClick={() => store.showGroup(step.branch)}
-              sx={{ font: "inherit", color: "inherit", textAlign: "left", "&:hover": { color: tokens.blue, textDecoration: "underline" } }}
+              sx={{ font: "inherit", color: "inherit", textAlign: "left", maxWidth: "100%", overflowWrap: "anywhere", "&:hover": { color: tokens.blue, textDecoration: "underline" } }}
             >
               {step.label}
             </ButtonBase>
@@ -125,7 +125,9 @@ function SelectedPath() {
   );
 }
 
-const pill = (color, bgcolor) => ({ fontSize: 12, lineHeight: "normal", fontWeight: 600, color, bgcolor, borderRadius: 999, px: 1.1, py: 0.25, whiteSpace: "nowrap" });
+// A class name can run long ("EMERGENCY MANAGEMENT SYMBOLS"): it wraps inside
+// the heading's width instead of pushing the symbol's name out.
+const pill = (color, bgcolor) => ({ maxWidth: "100%", fontSize: 12, lineHeight: 1.3, fontWeight: 600, color, bgcolor, borderRadius: "10px", px: 1.1, py: 0.25, textAlign: "right", overflowWrap: "break-word" });
 
 export default function PreviewPanel() {
   const store = useStore();
@@ -182,14 +184,18 @@ export default function PreviewPanel() {
           [media.narrowTall]: { position: "sticky", top: 0, zIndex: 5, boxShadow: "0 4px 12px rgb(36 49 61 / 12%)" }
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1.25 }}>
-          <Box sx={{ minWidth: 0 }}>
+        {/* The name and the badges share a row while the path and the name fit
+            beside the badges without wrapping; otherwise the badges take the
+            row above and the name gets the whole width (wrap-reverse, so
+            flex-end is the top of a row). */}
+        <Box sx={{ display: "flex", flexWrap: "wrap-reverse", alignItems: "flex-end", justifyContent: "space-between", columnGap: 1.25, rowGap: 0.75 }}>
+          <Box sx={{ flex: "1 1 auto", width: "max-content", minWidth: 0, maxWidth: "100%" }}>
             <SelectedPath />
-            <Typography component="h1" sx={{ fontSize: { xs: 15, md: 20 }, fontWeight: 600, letterSpacing: "-0.3px", lineHeight: 1.3, overflowWrap: "anywhere" }}>
+            <Typography component="h1" sx={{ fontSize: { xs: 15, md: 20 }, fontWeight: 600, letterSpacing: "-0.3px", lineHeight: 1.3, overflowWrap: "break-word" }}>
               {view.selectedName}
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", flexDirection: { xs: "row", md: "column" }, flexWrap: { xs: "wrap", md: "nowrap" }, justifyContent: "flex-end", alignItems: { xs: "center", md: "flex-end" }, gap: 0.75, flex: "none" }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "row", md: "column" }, flexWrap: { xs: "wrap", md: "nowrap" }, justifyContent: "flex-end", alignItems: { xs: "center", md: "flex-end" }, gap: 0.75, flex: "0 1 auto", minWidth: 0, maxWidth: "100%", ml: "auto" }}>
             {view.symbolClass ? <Box component="span" sx={pill(tokens.blueDark, tokens.tagBlue)}>{view.symbolClass}</Box> : null}
             {!view.coverage.hidden ? (
               <Box component="span" title={view.coverage.title} sx={pill(tokens.warn, tokens.warnBg)}>
@@ -199,9 +205,9 @@ export default function PreviewPanel() {
             <Box
               component="span"
               title={view.renderState.title}
-              sx={{ display: "inline-flex", alignItems: "center", gap: 0.75, fontSize: 12, lineHeight: "normal", whiteSpace: "nowrap", color: view.renderState.valid ? "text.secondary" : tokens.danger }}
+              sx={{ display: "inline-flex", alignItems: "center", gap: 0.75, maxWidth: "100%", fontSize: 12, lineHeight: 1.3, color: view.renderState.valid ? "text.secondary" : tokens.danger }}
             >
-              <Box component="i" sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: view.renderState.valid ? "#34a36b" : "#d24b42" }} />
+              <Box component="i" sx={{ flex: "none", width: 7, height: 7, borderRadius: "50%", bgcolor: view.renderState.valid ? "#34a36b" : "#d24b42" }} />
               {view.renderState.text}
             </Box>
           </Box>

@@ -72,12 +72,24 @@ export default function SidcConsole({ onCopy }) {
       className="sidc-console"
       sx={{ order: { xs: 3, md: 0 }, flex: "none", display: "flex", flexDirection: "column", gap: 1.25, p: 2, pt: 1.75, borderRadius: 3, containerType: "inline-size" }}
     >
-      <Box sx={{ display: "flex", alignItems: "baseline", gap: 1 }}>
-        <Typography component="label" htmlFor="sidcInput" sx={{ fontSize: 13, fontWeight: 700 }}>
+      {/* A narrow column drops "characters" after the count, not the heading's
+          line (screen readers still hear it); narrower still, Copy takes a
+          second row. No label breaks in two. */}
+      <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", columnGap: 1 }}>
+        <Typography component="label" htmlFor="sidcInput" sx={{ fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>
           {text("sidc.label")}
         </Typography>
-        <Box component="span" sx={{ fontSize: 12, color: "text.secondary" }}>
-          {status.length ? `${status.length}${text("sidc.characters")}` : "—"}
+        <Box component="span" sx={{ fontSize: 12, color: "text.secondary", whiteSpace: "nowrap" }}>
+          {status.length ? (
+            <>
+              {status.length}
+              <Box component="span" sx={{ "@container (max-width: 340px)": { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" } }}>
+                {text("sidc.characters")}
+              </Box>
+            </>
+          ) : (
+            "—"
+          )}
         </Box>
         <Button size="small" color="inherit" disabled={view.exportDisabled} title={text("preview.copyTitle")} onClick={onCopy} sx={{ ml: "auto", minWidth: 0, color: "text.secondary" }}>
           {text("preview.copy")}

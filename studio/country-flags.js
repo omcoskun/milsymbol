@@ -21,7 +21,10 @@ export function createCountryFlagPart(flags) {
     // The reference generator keeps the flag by the frame whatever the text says:
     // 20 units right of it, as the text rows start, and 10 up from its bottom.
     // The two rows beside it move right through the library's country_flag option.
-    const frame = this.metadata.baseGeometry.bbox;
+    // A tactical graphic has no frame: its base geometry is one point, so the
+    // flag goes by what has been drawn instead of on top of it.
+    const base = this.metadata.baseGeometry.bbox;
+    const frame = base.x2 > base.x1 || !(this.bbox.x2 > this.bbox.x1) ? base : this.bbox;
     const stack = this.options.stack ? this.options.stack * 15 : 0;
     const x = frame.x2 + 20 + stack;
     const y = frame.y2 - 10;

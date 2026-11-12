@@ -17,8 +17,9 @@ const typingPause = 700;
 
 const glyphBox = (tall) => ({
   flex: "none",
-  display: "grid",
-  placeItems: "center",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
   width: 54,
   height: tall ? 46 : 38,
   "& svg": { display: "block", width: "100%", height: "100%" },
@@ -41,8 +42,16 @@ export default function GlyphPicker({ idPrefix, labelledBy, describedBy, picker,
   const disabled = !picker || picker.disabled;
   const choice = rows.find((item) => item.value === value) || picker?.fallback || rows[0] || { value: "", name: "" };
 
+  // The sized box is the drawing's own parent: its 100% height needs a parent
+  // with a set height, or a tall viewBox runs into the next row.
   const glyph = (item) =>
-    picker?.flags ? <FlagImage code={item} svg={store.flagSvg(item)} /> : <Svg svg={picker?.glyph ? picker.glyph(item) : ""} />;
+    picker?.flags ? (
+      <Box component="span" className="glyph" aria-hidden="true" sx={glyphBox(tall)}>
+        <FlagImage code={item} svg={store.flagSvg(item)} />
+      </Box>
+    ) : (
+      <Svg className="glyph" aria-hidden="true" svg={picker?.glyph ? picker.glyph(item) : ""} sx={glyphBox(tall)} />
+    );
 
   useEffect(() => {
     if (disabled) setOpen(false);
@@ -128,9 +137,7 @@ export default function GlyphPicker({ idPrefix, labelledBy, describedBy, picker,
 
   const row = (item, note) => (
     <>
-      <Box component="span" className="glyph" aria-hidden="true" sx={glyphBox(tall)}>
-        {glyph(item.value)}
-      </Box>
+      {glyph(item.value)}
       <Box component="span" sx={{ flex: 1, minWidth: 0, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {item.name}
         {note ? (
@@ -236,9 +243,10 @@ export default function GlyphPicker({ idPrefix, labelledBy, describedBy, picker,
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 1,
-                    minHeight: tall ? 42 : 36,
-                    px: 1,
+                    gap: 1.25,
+                    minHeight: 44,
+                    // Room above and below: a mobility indicator ends at the edge of its box.
+                    p: "3px 10px 3px 2px",
                     borderRadius: 1,
                     cursor: item.disabled ? "default" : "pointer",
                     fontSize: 14,

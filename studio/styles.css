@@ -308,14 +308,25 @@ textarea::placeholder {
   gap: 12px;
   padding: 14px 16px 16px;
 }
+/* The name and the badges share a row while the path and the name fit beside
+   the badges without wrapping; otherwise the badges take the row above and
+   the name gets the whole width (wrap-reverse, so flex-end is the top of a
+   row). */
 .symbol-heading {
   display: flex;
-  align-items: flex-start;
+  flex-wrap: wrap-reverse;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 10px;
+  gap: 6px 10px;
 }
 .heading-copy {
+  flex: 1 1 auto;
+  width: max-content;
   min-width: 0;
+  max-width: 100%;
+}
+.symbol-heading h1 {
+  overflow-wrap: break-word;
 }
 /* The symbol's place in the palette: whole words that wrap, never cut. */
 .selected-path {
@@ -335,6 +346,8 @@ textarea::placeholder {
   color: inherit;
   font-weight: 400;
   text-align: left;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .path-link:hover {
   background: none;
@@ -355,35 +368,43 @@ textarea::placeholder {
   flex-direction: column;
   align-items: flex-end;
   gap: 6px;
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+}
+/* A class name can run long ("EMERGENCY MANAGEMENT SYMBOLS"): it wraps inside
+   the heading's width instead of pushing the symbol's name out. */
+.class-badge,
+.coverage-badge {
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  border-radius: 10px;
+  padding: 2px 9px;
+  text-align: right;
+  overflow-wrap: break-word;
 }
 .class-badge {
-  font-size: 12px;
-  font-weight: 600;
   color: var(--blue-dark);
   background: var(--tag-blue);
-  border-radius: 999px;
-  padding: 2px 9px;
-  white-space: nowrap;
 }
 .coverage-badge {
-  font-size: 12px;
-  font-weight: 600;
   color: var(--warn);
   background: var(--warn-bg);
-  border-radius: 999px;
-  padding: 2px 9px;
-  white-space: nowrap;
 }
 .render-state {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  max-width: 100%;
   color: var(--muted);
   font-size: 12px;
-  white-space: nowrap;
+  line-height: 1.3;
 }
 .render-state i {
+  flex: none;
   width: 7px;
   height: 7px;
   border-radius: 50%;
