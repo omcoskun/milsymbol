@@ -269,3 +269,30 @@ test("a country flag goes into the SIDC once the flags have loaded", () => {
   assert.equal(store.sidc().slice(12, 14), "US");
   assert.equal(store.getSnapshot().view.pickers.country.value, "us");
 });
+
+test("headquarters, task force and feint share position 11 with a letter SIDC's mobility", () => {
+  for (const standard of ["2525c", "app6b"]) {
+    const store = editor();
+    store.setStandard(standard);
+    store.setSidcInput("SFAPMFP--------");
+    store.applySidc();
+    store.setAmplifierMode("mobility");
+    // No mobility chosen: position 11 is free and takes the flag.
+    store.setFlag("hq", true);
+    store.setFlag("taskForce", true);
+    assert.equal(store.sidc().slice(10, 12), "B-", standard);
+    // A mobility code fills positions 11–12: the flags stay checked but are off, and say why.
+    const choice = store.getSnapshot().view.pickers.amplifier.choices.find((item) => item.value && !item.disabled && !item.reason);
+    store.setAmplifierValue(choice.value);
+    let snapshot = store.getSnapshot();
+    assert.match(store.sidc().slice(10, 12), /^[MN][A-Z]$/, standard);
+    assert.deepEqual([snapshot.disabled.hq, snapshot.disabled.taskForce, snapshot.disabled.feintDummy], [true, true, true], standard);
+    assert.equal(snapshot.controls.hq, true, standard);
+    assert.match(snapshot.view.designationReason, /mobility code uses positions 11–12/, standard);
+    // Back to Unspecified: the checked flags return to the code.
+    store.setAmplifierValue("");
+    snapshot = store.getSnapshot();
+    assert.equal(snapshot.disabled.hq, false, standard);
+    assert.equal(store.sidc().slice(10, 12), "B-", standard);
+  }
+});

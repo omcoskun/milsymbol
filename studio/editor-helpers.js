@@ -970,9 +970,13 @@ export function designationNotes({
       "Tactical points take no headquarters, task force or feint flag."
     );
   else {
-    if (app6a && mobility)
+    // mobility: a mobility or towed array code fills positions 11–12 of the
+    // letter SIDC, where the flag of this card goes.
+    if (mobility && !modern)
       reasons.push(
-        `Mobility uses positions 11–12, so ${offsetRole ? "location offset" : "headquarters"} is off.`
+        app6a
+          ? `The mobility code uses positions 11–12, so ${offsetRole ? "location offset" : "headquarters"} and feint / dummy are off. Choose Unspecified to use them.`
+          : "The mobility code uses positions 11–12, so headquarters, task force and feint / dummy are off. Choose Unspecified to use them."
       );
     if (app6a && kind !== "unit")
       reasons.push("Task force applies to units only.");

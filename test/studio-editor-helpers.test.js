@@ -616,11 +616,19 @@ export default {
     ],
     "mobility turns the staff off on a unit": [
       designationNotes({ app6a: true, kind: "unit", mobility: true }).reason,
-      "Mobility uses positions 11–12, so headquarters is off."
+      "The mobility code uses positions 11–12, so headquarters and feint / dummy are off. Choose Unspecified to use them."
     ],
     "mobility turns the offset off on equipment": [
       designationNotes({ app6a: true, kind: "equipment", mobility: true }).reason,
-      "Mobility uses positions 11–12, so location offset is off. Task force applies to units only."
+      "The mobility code uses positions 11–12, so location offset and feint / dummy are off. Choose Unspecified to use them. Task force applies to units only."
+    ],
+    "a mobility code turns every flag off in 2525C and APP-6B": [
+      designationNotes({ kind: "", mobility: true }).reason,
+      "The mobility code uses positions 11–12, so headquarters, task force and feint / dummy are off. Choose Unspecified to use them."
+    ],
+    "a modern SIDC keeps its flags beside a mobility": [
+      designationNotes({ modern: true, mobility: true }).reason,
+      ""
     ],
     "a profile's reason names its flag": [
       designationNotes({ modern: true, flagReasons: { taskForce: "not on this symbol set" } }).reason,

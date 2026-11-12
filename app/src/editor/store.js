@@ -443,12 +443,13 @@ export function createEditorStore({
     return options;
   }
 
+  // Flags turned off only because a mobility code holds positions 11–12. They
+  // still count here: buildSidc() writes the mobility code over them, and once
+  // the mobility goes back to Unspecified they return before the next sync.
+  const heldByMobility = new Set();
   function flagCode() {
-    return (
-      (controls.feintDummy && !disabled.feintDummy ? 1 : 0) +
-      (controls.hq && !disabled.hq ? 2 : 0) +
-      (controls.taskForce && !disabled.taskForce ? 4 : 0)
-    );
+    const on = (key) => controls[key] && (!disabled[key] || heldByMobility.has(key));
+    return (on("feintDummy") ? 1 : 0) + (on("hq") ? 2 : 0) + (on("taskForce") ? 4 : 0);
   }
 
   function legacyFlagCharacter() {
@@ -581,10 +582,11 @@ export function createEditorStore({
           echelons.find((item) => item[0] === state.amplifierValue)?.[3] || (state.amplifierValue.startsWith("code:") ? state.amplifierValue.slice(5) : "-")
         ];
       } else if (!minimal && state.amplifierMode === "mobility") {
-        amplifier = [
-          ...(mobilities.find((item) => item[0] === state.amplifierValue)?.[3] ||
-            (state.amplifierValue.startsWith("code:") ? state.amplifierValue.slice(5) : "--"))
-        ];
+        const code = state.amplifierValue &&
+          (mobilities.find((item) => item[0] === state.amplifierValue)?.[3] ||
+            (state.amplifierValue.startsWith("code:") ? state.amplifierValue.slice(5) : ""));
+        // With no mobility chosen, position 11 keeps the headquarters, task force and feint flag.
+        if (code) amplifier = [...code];
       }
       // Installations keep their H (APP-6A and 2525C catalogue entries, imported codes).
       if (icon.defaultModifier?.startsWith("H")) {
@@ -956,10 +958,11 @@ export function createEditorStore({
     const icon = selectedIcon();
     const setModifiers = dataset().modifiers?.[icon?.symbolSet]?.[field] || [];
     const commonModifiers = dataset().common?.[field] || [];
+    // The tables' own 00 row writes what Unspecified writes, so it is not listed twice.
     const entries = [
       ...setModifiers.map((item) => ({ ...item, scope: "set" })),
       ...commonModifiers.map((item) => ({ ...item, scope: "common" }))
-    ];
+    ].filter((item) => !/^0+$/.test(item.code));
     const list = [{ value: "", label: "Unspecified" }];
     for (const item of entries) {
       const group = `${item.scope === "common" ? "Common" : icon.category} / ${item.category || "Other"}`;
@@ -982,7 +985,7 @@ export function createEditorStore({
     const kind = app6a ? app6aSymbolClass(state.customSidc || buildSidc()) : "";
     const installation = !modern && selectedIcon()?.defaultModifier?.startsWith("H");
     const tactical = state.standardId === "app6a" && selectedIcon()?.codingScheme === "G";
-    disabled.hq = Boolean(installation || tactical || (app6a && state.amplifierMode === "mobility"));
+    disabled.hq = Boolean(installation || tactical);
     disabled.taskForce = Boolean(installation || (app6a && kind !== "unit"));
     disabled.feintDummy = Boolean(tactical);
     disabled.amplifierValue = Boolean(installation || tactical || state.amplifierMode === "none");
@@ -1008,7 +1011,18 @@ export function createEditorStore({
         if (!hasOffer(list)) disabled[`mode:${mode}`] = true;
     }
     if (offers) populateAmplifier();
-    syncRuleNotes({ modern, app6a, kind, installation, tactical, prescribed: Boolean(prescribedAffiliation), flagReasons });
+    // A mobility or towed array code fills positions 11–12 of a letter SIDC,
+    // where the headquarters, task force and feint flag would go.
+    const mobilityCode = !modern && !installation && !tactical && state.amplifierMode === "mobility" && Boolean(state.amplifierValue);
+    heldByMobility.clear();
+    if (mobilityCode)
+      for (const key of ["hq", "taskForce", "feintDummy"]) {
+        if (disabled[key]) continue;
+        disabled[key] = true;
+        heldByMobility.add(key);
+        flagTitles[key] = "Positions 11–12 hold the mobility code";
+      }
+    syncRuleNotes({ modern, app6a, kind, installation, tactical, mobilityCode, prescribed: Boolean(prescribedAffiliation), flagReasons });
     syncApp6aTextFields();
     view.legacyNote = installation
       ? "Installation modifier H is applied automatically. Feint / dummy changes it to HB; unit echelon and headquarters flags do not apply."
@@ -1071,7 +1085,7 @@ export function createEditorStore({
   }
 
   // Explain every rule that disables a control, next to the control.
-  function syncRuleNotes({ modern, app6a, kind, installation, tactical, prescribed, flagReasons = {} }) {
+  function syncRuleNotes({ modern, app6a, kind, installation, tactical, mobilityCode, prescribed, flagReasons = {} }) {
     const profile = activeProfile();
     const editionE = ["2525e", "app6e"].includes(state.standardId);
     const contextNote = {
@@ -1104,7 +1118,7 @@ export function createEditorStore({
     view.hqStaffLabel = offsetRole ? "Offset line length" : "HQ staff length";
     const designation = designationNotes({
       app6a, modern, kind, installation, tactical,
-      mobility: state.amplifierMode === "mobility",
+      mobility: mobilityCode,
       flagReasons: Object.fromEntries(Object.entries(flagReasons).map(([key, reason]) => [key, humanize(shortReason(reason))]))
     });
     view.designationReason = designation.reason;
