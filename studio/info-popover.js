@@ -7,6 +7,54 @@ export function popoverPosition({ anchor, box, width, height, gap = 8, margin = 
   return { left, top: Math.max(margin, Math.min(top, height - box.height - margin)) };
 }
 
+// How long the pointer rests on an (i) button before its box opens, and how long the
+// box waits after the pointer leaves it and its button, so it can cross the gap between.
+export const hoverDelays = { open: 120, close: 200 };
+
+// A mouse pointer on the button opens the box, and leaving the button and the box closes
+// it. A click on a box the pointer opened keeps it open; touch and keys work as before.
+function openOnHover(popover, button) {
+  let timer = 0;
+  let hovered = false;
+  const mouse = (event) => event.pointerType === "mouse";
+  const isOpen = () => popover.matches(":popover-open");
+  const later = (action, delay) => {
+    clearTimeout(timer);
+    timer = setTimeout(action, delay);
+  };
+  const leave = (event) => {
+    if (!mouse(event)) return;
+    if (!isOpen()) clearTimeout(timer);
+    else if (hovered) later(() => popover.hidePopover(), hoverDelays.close);
+  };
+  button.addEventListener("pointerenter", (event) => {
+    if (!mouse(event)) return;
+    clearTimeout(timer);
+    if (isOpen()) return;
+    later(() => {
+      hovered = true;
+      popover.showPopover();
+    }, hoverDelays.open);
+  });
+  button.addEventListener("pointerleave", leave);
+  popover.addEventListener("pointerenter", (event) => {
+    if (mouse(event)) clearTimeout(timer);
+  });
+  popover.addEventListener("pointerleave", leave);
+  button.addEventListener("click", (event) => {
+    clearTimeout(timer);
+    // A cancelled click skips the popovertarget toggle, which would close the box.
+    if (hovered && isOpen()) event.preventDefault();
+    hovered = false;
+  });
+  popover.addEventListener("toggle", (event) => {
+    if (event.newState === "closed") {
+      clearTimeout(timer);
+      hovered = false;
+    }
+  });
+}
+
 function anchorTo(popover, button) {
   popover.addEventListener("beforetoggle", (event) => {
     button.setAttribute("aria-expanded", String(event.newState === "open"));
@@ -50,6 +98,7 @@ export function setupInfoPopovers() {
     parts.querySelector(".info-popover-body").append(...holder.childNodes);
     holder.append(parts);
     anchorTo(popover, button);
+    openOnHover(popover, button);
   }
   const openBox = () => document.querySelector(".info-popover:popover-open");
   window.addEventListener("resize", () => {
